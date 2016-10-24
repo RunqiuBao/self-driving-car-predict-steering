@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!-- rviz -->
+  <arg name="rviz"    default="true" />
+  <arg name="rviz_file" default="$(find dataprocess)/rviz/disp.rviz" />
+  <node pkg="rviz" type="rviz" name="rviz_config" args="-d $(arg rviz_file)" output="screen" if="$(arg rviz)"/>
+
+</launch>
