@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(dataprocess)
+project(imagestictching)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -7,9 +7,8 @@ project(dataprocess)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
-  sensor_msgs
-  std_msgs
-)
+  OpenCV REQUIRED
+) 
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -18,7 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
 ## See http://ros.org/doc/api/catkin/html/user_guide/setup_dot_py.html
-# catkin_python_setup()
+#catkin_python_setup()
 
 ################################################
 ## Declare ROS messages, services and actions ##
@@ -68,7 +67,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
 # generate_messages(
 #   DEPENDENCIES
-#   sensor_msgs#   std_msgs
+#   std_msgs  # Or other packages containing msgs
 # )
 
 ################################################
@@ -102,8 +101,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES dataprocess
-#  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs
+#  LIBRARIES imagestictching
+#  CATKIN_DEPENDS roscpp rospy
 #  DEPENDS system_lib
 )
 
@@ -116,29 +115,37 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${OPEN}
 )
 
 ## Declare a C++ library
-# add_library(dataprocess
-#   src/${PROJECT_NAME}/dataprocess.cpp
+# add_library(imagestictching
+#   src/${PROJECT_NAME}/imagestictching.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(dataprocess ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(imagestictching ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(dataprocess_node src/dataprocess_node.cpp)
-
+add_executable( compose_panaroma src/compose_panaroma.cpp ) 
+add_executable( panaroma src/panaroma.cpp )
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(dataprocess_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(compose_panaroma ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(panaroma ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(dataprocess_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(compose_panaroma
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}	
+ )
+
+ target_link_libraries(panaroma
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}	
+ )
 
 #############
 ## Install ##
@@ -155,7 +162,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS dataprocess dataprocess_node
+# install(TARGETS imagestictching imagestictching_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -180,7 +187,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_dataprocess.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_imagestictching.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

@@ -1,3 +1,4 @@
+
 /*#include <stdio.h>
 #include <iostream>
  
@@ -47,9 +48,9 @@ int main()
 
 	 Mat rImg;
 
-	 vImg.push_back( imread("./img1.jpg") );
-	 vImg.push_back( imread("./img2.jpg") );		
-	//vImg.push_back( imread("./im3.jpeg") );
+     vImg.push_back( imread("./img1.jpg") );
+     vImg.push_back( imread("./img2.jpg") );
+     vImg.push_back( imread("./img3.jpg") );
 	 //vImg.push_back( imread("./stitching_img/S4.jpg") );
 	 //vImg.push_back( imread("./stitching_img/S5.jpg") );
 	 //vImg.push_back( imread("./stitching_img/S6.jpg") );

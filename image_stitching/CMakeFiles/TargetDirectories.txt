@@ -1,2 +1,0 @@
-/home/rohit/Deep_Learning/project/CMakeFiles/compose_panaroma.dir
-/home/rohit/Deep_Learning/project/CMakeFiles/panaroma.dir
