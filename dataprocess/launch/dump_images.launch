@@ -1,0 +1,29 @@
+<launch>
+  <!-- run the bag file -->
+  <node pkg="rosbag" type="play" name="rosbag" args="$(find dataset)/split_data.bag"/>
+ 
+  <!-- extract the left camera images -->
+  <node name="extract_leftImages" pkg="image_view" type="extract_images" respawn="false" output="screen" cwd="ROS_HOME">
+   <remap from="image" to="/left_camera/image_color"/>
+  </node>
+  <!-- copy the images to the folder -->
+  <node pkg="dataprocess" type="image_copy.sh" args="left" name="left_image_copier" output="screen">
+  </node>
+
+  <!-- extract the right camera images -->
+  <node name="extract_rightImages" pkg="image_view" type="extract_images" respawn="false" output="screen" cwd="ROS_HOME">
+   <remap from="image" to="/right_camera/image_color"/>
+  </node>
+  <!-- copy the images to the folder -->
+  <node pkg="dataprocess" type="image_copy.sh" args="right" name="right_image_copier" output="screen">
+  </node>
+
+  <!-- extract the center camera images -->
+  <node name="extract_centerImages" pkg="image_view" type="extract_images" respawn="false" output="screen" cwd="ROS_HOME">
+   <remap from="image" to="/center_camera/image_color"/>
+  </node>
+  <!-- copy the images to the folder -->
+  <node pkg="dataprocess" type="image_copy.sh" args="center" name="center_camera_extractor" output="screen">
+  </node>
+
+</launch>

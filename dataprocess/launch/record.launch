@@ -10,6 +10,7 @@
   <arg name="record_tf"                   	default="1" />
   <arg name="record_diagnostics"          	default="1" />
   <arg name="republish_raw2compressed_images"   default="0" />
+  <arg name="record_can_interface"              dafault="0" />
 
 
 <!-- RECORDING NODES  -->
@@ -84,18 +85,6 @@
     "
     output="screen"/>
   </group>
-
-  <!-- Records can interface -->
-  <group if="$(arg record_can_interface)">
-    <node name="record_can_interface" pkg="rosbag" type="record" args="
-    --split
-    --size=3999
-    -o $(arg bagPath)/$(arg bagIdentifier)_io_can_interface
-    /can_bus_dbw/can_rx
-    "
-    output="screen"/>
-  </group>
-
 
 <!--Diagnostics and tf-->
   <!-- Records the transforms -->
