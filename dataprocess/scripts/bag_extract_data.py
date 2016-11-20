@@ -100,7 +100,7 @@ with rosbag.Bag(rosbag_file, "r") as bag:
             if im_count % 1000 == 0:
                 print 'Done processing images :{}'.format(im_count)
 
-steering_angle_file = os.path.join(data_dir, "data_new_1.txt")
+steering_angle_file = os.path.join(data_dir, "image_steering_angle.txt")
 
 with open(steering_angle_file, "w") as data_file:
     for idx in range(len(tmp)):
