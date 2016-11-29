@@ -1,11 +1,9 @@
-# Copyright (C) 2016 Ross Wightman. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-# ==============================================================================
+#!/usr/bin/python
+## Author: sumanth
+## Date: Nov, 28,2016
+## Purpose: utils
+
+# code is taken from https://github.com/rwightman/udacity-driving-reader/tree/master/script
 
 from __future__ import print_function
 from six import iteritems
@@ -299,7 +297,7 @@ class CursorGroup(object):
         return False
 
     __nonzero__ = __bool__
-    
+
     def advance(self, n=1):
         all_done = True
         for c in self.cursors:

@@ -1,11 +1,9 @@
-# Copyright (C) 2016 Ross Wightman. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-# ==============================================================================
+#!/usr/bin/python
+## Author: sumanth
+## Date: Nov, 28,2016
+## Purpose: reads the data set bag file, generates the data
+
+# code is derived from https://github.com/rwightman/udacity-driving-reader/tree/master/script
 
 from __future__ import print_function
 from cv_bridge import CvBridge, CvBridgeError
@@ -18,21 +16,14 @@ import argparse
 import functools
 import numpy as np
 import pandas as pd
-
+import rospkg
 from bagutils import *
-
 
 def get_outdir(base_dir, name):
     outdir = os.path.join(base_dir, name)
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     return outdir
-
-
-def check_format(data):
-    img_fmt = imghdr.what(None, h=data)
-    return 'jpg' if img_fmt == 'jpeg' else img_fmt
-
 
 def write_image(bridge, outdir, msg, fmt='png'):
     results = {}
@@ -46,11 +37,7 @@ def write_image(bridge, outdir, msg, fmt='png'):
                 return results
             results['height'] = cv_image.shape[0]
             results['width'] = cv_image.shape[1]
-            # Avoid re-encoding if we don't have to
-            if check_format(msg.data) == fmt:
-                buf.tofile(image_filename)
-            else:
-                cv2.imwrite(image_filename, cv_image)
+            cv2.imwrite(image_filename, cv_image)
         else:
             cv_image = bridge.imgmsg_to_cv2(msg, "bgr8")
             cv2.imwrite(image_filename, cv_image)
@@ -119,29 +106,18 @@ def camera_select(topic, select_from):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Convert rosbag to images and csv.')
-    parser.add_argument('-o', '--outdir', type=str, nargs='?', default='/output',
-        help='Output folder')
-    parser.add_argument('-i', '--indir', type=str, nargs='?', default='/data',
-        help='Input folder where bagfiles are located')
-    parser.add_argument('-f', '--img_format', type=str, nargs='?', default='jpg',
-        help='Image encode format, png or jpg')
-    parser.add_argument('-m', dest='msg_only', action='store_true', help='Messages only, no immages')
-    parser.add_argument('-d', dest='debug', action='store_true', help='Debug print enable')
-    parser.set_defaults(msg_only=False)
-    parser.set_defaults(debug=False)
-    args = parser.parse_args()
-
-    img_format = args.img_format
-    base_outdir = args.outdir
-    indir = args.indir
-    msg_only = args.msg_only
-    debug_print = args.debug
+    #set rospack
+    rospack = rospkg.RosPack()
+    #get package
+    data_dir=rospack.get_path('dataset')
+    rosbag_file = os.path.join(data_dir, "dataset.bag")
 
     bridge = CvBridge()
 
-    include_images = False if msg_only else True
+    include_images = True
     include_others = True
+    debug_print = False
+    img_format = 'png'
 
     filter_topics = [STEERING_TOPIC, GPS_FIX_TOPIC, GPS_FIX_NEW_TOPIC]
     if include_images:
@@ -149,15 +125,16 @@ def main():
     if include_others:
         filter_topics += OTHER_TOPICS
 
-    bagsets = find_bagsets(indir, filter_topics=filter_topics)
+    bagsets = find_bagsets(data_dir, filter_topics=filter_topics)
     for bs in bagsets:
         print("Processing set %s" % bs.name)
         sys.stdout.flush()
 
-        dataset_outdir = os.path.join(base_outdir, "%s" % bs.name)
-        left_outdir = get_outdir(dataset_outdir, "left")
-        center_outdir = get_outdir(dataset_outdir, "center")
-        right_outdir = get_outdir(dataset_outdir, "right")
+        dataset_outdir = os.path.join(data_dir, "%s" % bs.name)
+        left_outdir = get_outdir(data_dir, "left")
+        center_outdir = get_outdir(data_dir, "center")
+        right_outdir = get_outdir(data_dir, "right")
+        yaml_outdir = get_outdir(data_dir, "yaml_files")
 
         camera_cols = ["timestamp", "width", "height", "frame_id", "filename"]
         camera_dict = defaultdict(list)
@@ -181,7 +158,7 @@ def main():
             gear_cols = ["timestamp", "gear_state", "gear_cmd"]
             gear_dict = defaultdict(list)
 
-        bs.write_infos(dataset_outdir)
+        bs.write_infos(yaml_outdir)
         readers = bs.get_readers()
         stats_acc = defaultdict(int)
 
@@ -193,7 +170,7 @@ def main():
                     print("%s_camera %d" % (topic[1], timestamp))
 
                 results = write_image(bridge, outdir, msg, fmt=img_format)
-                results['filename'] = os.path.relpath(results['filename'], dataset_outdir)
+                results['filename'] = os.path.relpath(results['filename'], yaml_outdir)
                 camera2dict(msg, results, camera_dict)
                 stats['img_count'] += 1
                 stats['msg_count'] += 1
@@ -241,32 +218,32 @@ def main():
         sys.stdout.flush()
 
         if include_images:
-            camera_csv_path = os.path.join(dataset_outdir, 'camera.csv')
+            camera_csv_path = os.path.join(yaml_outdir, 'camera.csv')
             camera_df = pd.DataFrame(data=camera_dict, columns=camera_cols)
             camera_df.to_csv(camera_csv_path, index=False)
 
-        steering_csv_path = os.path.join(dataset_outdir, 'steering.csv')
+        steering_csv_path = os.path.join(yaml_outdir, 'steering.csv')
         steering_df = pd.DataFrame(data=steering_dict, columns=steering_cols)
         steering_df.to_csv(steering_csv_path, index=False)
 
-        gps_csv_path = os.path.join(dataset_outdir, 'gps.csv')
+        gps_csv_path = os.path.join(yaml_outdir, 'gps.csv')
         gps_df = pd.DataFrame(data=gps_dict, columns=gps_cols)
         gps_df.to_csv(gps_csv_path, index=False)
 
         if include_others:
-            gear_csv_path = os.path.join(dataset_outdir, 'gear.csv')
+            gear_csv_path = os.path.join(yaml_outdir, 'gear.csv')
             gear_df = pd.DataFrame(data=gear_dict, columns=gear_cols)
             gear_df.to_csv(gear_csv_path, index=False)
 
-            throttle_csv_path = os.path.join(dataset_outdir, 'throttle.csv')
+            throttle_csv_path = os.path.join(yaml_outdir, 'throttle.csv')
             throttle_df = pd.DataFrame(data=throttle_dict, columns=throttle_cols)
             throttle_df.to_csv(throttle_csv_path, index=False)
 
-            brake_csv_path = os.path.join(dataset_outdir, 'brake.csv')
+            brake_csv_path = os.path.join(yaml_outdir, 'brake.csv')
             brake_df = pd.DataFrame(data=brake_dict, columns=brake_cols)
             brake_df.to_csv(brake_csv_path, index=False)
 
-            imu_csv_path = os.path.join(dataset_outdir, 'imu.csv')
+            imu_csv_path = os.path.join(yaml_outdir, 'imu.csv')
             imu_df = pd.DataFrame(data=imu_dict, columns=imu_cols)
             imu_df.to_csv(imu_csv_path, index=False)
 
@@ -297,7 +274,7 @@ def main():
             filtered['height'] = filtered['height'].astype('int')  # cast back to int
             filtered = filtered[filtered_cols]  # filter and reorder columns for final output
 
-            interpolated_csv_path = os.path.join(dataset_outdir, 'interpolated.csv')
+            interpolated_csv_path = os.path.join(yaml_outdir, 'interpolated.csv')
             filtered.to_csv(interpolated_csv_path, header=True)
 
 if __name__ == '__main__':
