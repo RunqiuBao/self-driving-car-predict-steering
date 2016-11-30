@@ -64,9 +64,33 @@ def loadTrainData(batch_size):
         # as the steering wheel angle is proportional to inverse of turning radius
         # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
         # but converted to radians
-        train_y.append([data_labels.values[(train_batch_index + i) % len_train_samples]])
+        train_y.append(data_labels.values[(train_batch_index + i) % len_train_samples][0])
 
     #increment the index
     train_batch_index += batch_size
 
     return train_x, train_y
+
+def loadValData(batch_size):
+    global val_batch_index
+    val_x = []
+    val_y = []
+    # fetch all the images and the labels
+    for i in range(0,batch_size):
+        img_file=os.path.join(data_dir, data_inputs.values[(val_batch_index + i) % len_val_samples][0][3:])
+        x = cv2.imread(img_file)
+        # normalise the image
+        xt = cv2.resize(x.copy()/255.0, (640, 480)).astype(numpy.float32)
+        xt = xt.transpose((2, 0, 1))
+        xt = numpy.expand_dims(xt, axis = 0)
+        val_x.append(xt)
+
+        # as the steering wheel angle is proportional to inverse of turning radius
+        # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+        # but converted to radians
+        val_y.append(data_labels.values[(val_batch_index + i) % len_val_samples][0])
+
+    #increment the index
+    val_batch_index += batch_size
+
+    return val_x, val_y
