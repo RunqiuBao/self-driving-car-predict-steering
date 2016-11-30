@@ -1,3 +1,7 @@
-# ignore our bag files and the png images
+# ignore our bag files, png images, csv, yaml files
 *.png
 *.bag
+*.csv
+*.yaml
+
+*.pyc

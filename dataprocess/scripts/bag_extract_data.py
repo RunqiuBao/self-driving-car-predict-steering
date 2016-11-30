@@ -117,6 +117,7 @@ def main():
     include_images = True
     include_others = True
     debug_print = False
+    gen_interpolated = True
     img_format = 'png'
 
     filter_topics = [STEERING_TOPIC, GPS_FIX_TOPIC, GPS_FIX_NEW_TOPIC]
@@ -247,7 +248,6 @@ def main():
             imu_df = pd.DataFrame(data=imu_dict, columns=imu_cols)
             imu_df.to_csv(imu_csv_path, index=False)
 
-        gen_interpolated = True
         if include_images and gen_interpolated:
             # A little pandas magic to interpolate steering/gps samples to camera frames
             camera_df['timestamp'] = pd.to_datetime(camera_df['timestamp'])
@@ -274,7 +274,7 @@ def main():
             filtered['height'] = filtered['height'].astype('int')  # cast back to int
             filtered = filtered[filtered_cols]  # filter and reorder columns for final output
 
-            interpolated_csv_path = os.path.join(yaml_outdir, 'interpolated.csv')
+            interpolated_csv_path = os.path.join(yaml_outdir, 'final_interpolated.csv')
             filtered.to_csv(interpolated_csv_path, header=True)
 
 if __name__ == '__main__':
