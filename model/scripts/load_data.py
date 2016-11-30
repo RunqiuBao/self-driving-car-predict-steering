@@ -48,7 +48,9 @@ len_train_samples = len(train_x)
 len_val_samples = len(val_x)
 
 def loadY():
-    return train_y.values[:, 0]
+    trainy = train_y.values[:, 0]
+    trainy = numpy.expand_dims(trainy, axis = 1)
+    return trainy
 
 def loadTrainData(batch_size):
     global train_batch_index

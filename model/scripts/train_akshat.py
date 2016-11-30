@@ -13,7 +13,7 @@ print "Loaded the model"
 model.compile(loss='mse', optimizer='adam')
 
 batch_size = 100
-epochs = 5
+epochs = 1
 
 #training_history = []
 
@@ -21,6 +21,7 @@ y_train_data = load_data.loadY()
 trainPredict = []
 
 for i in range(epochs):
+    #for j in range(batch_size):
     for j in range(load_data.len_train_samples/batch_size):
         x_train, y_train = load_data.loadTrainData(batch_size)
         history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
@@ -31,15 +32,25 @@ for i in range(epochs):
         # generate predictions for training
         trainPredict.append(model.predict(x_train))
         #print 'Prediction: ', trainPredict
-        # shift train predictions for plotting
+
+    x_train, y_train = load_data.loadTrainData(load_data.len_train_samples - load_data.train_batch_index)
+    history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
+    trainPredict.append(model.predict(x_train))
+
+
+trainPredict = numpy.array(trainPredict)
+trainPredict = trainPredict.flatten()
+trainPredict = numpy.expand_dims(trainPredict, axis = 1)
 
 # Estimate model performance
 trainScore = model.evaluate(x_train, y_train, verbose=2)
 print 'Train Score: ', trainScore
 
+# shift train predictions for plotting
 trainPredictPlot = numpy.empty_like(y_train_data)
 trainPredictPlot[:, :] = numpy.nan
 trainPredictPlot[0:len(trainPredict), :] = trainPredict
+
 # plot baseline and predictions
 plt.plot(y_train_data, label = 'Dataset')
 plt.plot(trainPredictPlot, label = 'Training Prediction')
