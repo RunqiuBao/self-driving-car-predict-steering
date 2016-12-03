@@ -277,5 +277,19 @@ def main():
             interpolated_csv_path = os.path.join(yaml_outdir, 'final_interpolated.csv')
             filtered.to_csv(interpolated_csv_path, header=True)
 
+            # process the images and generate the independent csv files for cameras
+            image_csv = pd.read_csv(interpolated_csv_path, sep=',', header=0)
+            left_csv = image_csv[image_csv['frame_id'] == 'left_camera']
+            l_outdir = os.path.join(yaml_outdir, 'left_camera_image.csv')
+            left_csv.to_csv(l_outdir, index=False, sep=',')
+
+            right_csv = image_csv[image_csv['frame_id'] == 'right_camera']
+            r_outdir = os.path.join(yaml_outdir, 'right_camera_image.csv')
+            right_csv.to_csv(r_outdir, index=False, sep=',')
+
+            center_csv = image_csv[image_csv['frame_id'] == 'center_camera']
+            c_outdir = os.path.join(yaml_outdir, 'center_camera_image.csv')
+            center_csv.to_csv(c_outdir, index=False, sep=',')
+
 if __name__ == '__main__':
     main()
