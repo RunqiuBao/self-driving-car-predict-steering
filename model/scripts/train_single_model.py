@@ -1,3 +1,8 @@
+#!/usr/bin/python
+## Author: akshat
+## Date: Dec, 3,2016
+# trains the model
+
 from keras.models import model_from_json
 import load_data
 import numpy
@@ -12,34 +17,23 @@ print "Loaded the model"
 
 model.compile(loss='mse', optimizer='adam')
 
-batch_size = 100
-epochs = 1
-
-#training_history = []
+batch_size = 500
+epochs = 10
 
 y_train_data = load_data.loadY()
-trainPredict = []
 
 for i in range(epochs):
-    #for j in range(batch_size):
+    trainPredict = numpy.empty([0])
     for j in range(load_data.len_train_samples/batch_size):
         x_train, y_train = load_data.loadTrainData(batch_size)
         history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
-        #print history.history.keys()
-        # Estimate model performance
-        #trainScore = model.evaluate(x_train, y_train, verbose=0)
-        #print 'Train Score: ', trainScore
-        # generate predictions for training
-        trainPredict.append(model.predict(x_train))
-        #print 'Prediction: ', trainPredict
+        trainPredict = numpy.append(trainPredict, model.predict(x_train))
+        print "Epoch" + str(i+1)
 
-    x_train, y_train = load_data.loadTrainData(load_data.len_train_samples - load_data.train_batch_index)
+    x_train, y_train = load_data.loadTrainData(load_data.len_train_samples - (load_data.train_batch_index%load_data.len_train_samples))
     history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
-    trainPredict.append(model.predict(x_train))
+    trainPredict = numpy.append(trainPredict, model.predict(x_train))
 
-
-trainPredict = numpy.array(trainPredict)
-trainPredict = trainPredict.flatten()
 trainPredict = numpy.expand_dims(trainPredict, axis = 1)
 
 # Estimate model performance
@@ -55,8 +49,9 @@ trainPredictPlot[0:len(trainPredict), :] = trainPredict
 plt.plot(y_train_data, label = 'Dataset')
 plt.plot(trainPredictPlot, label = 'Training Prediction')
 plt.legend(loc = 'upper left')
+plt.savefig('Performance')
 plt.show()
 
 # serialize weights to HDF5
 model.save_weights("model_epochs_1-5.h5")
-print("Saved model to disk")
+print("Saved weights to disk")
