@@ -52,7 +52,10 @@ r_labels = pandas.read_csv(rimages_csv_file, usecols=['angle'], engine='python',
 c_inputs = pandas.read_csv(cimages_csv_file, usecols=['filename'], engine='python', skipfooter=0)
 c_labels = pandas.read_csv(cimages_csv_file, usecols=['angle'], engine='python', skipfooter=0)
 
-if not((len(m_inputs.values) and len(m_labels.values) or (len(l_inputs.values) and len(l_labels.values) or (len(r_inputs.values) and len(r_labels.values) or (len(c_inputs.values) and len(c_labels.values)):
+if not((len(m_inputs.values) and len(m_labels.values)) or \
+       (len(l_inputs.values) and len(l_labels.values)) or \
+       (len(r_inputs.values) and len(r_labels.values)) or \
+       (len(c_inputs.values) and len(c_labels.values))):
     print "error in dataset"
 
 # split into train and test datas
@@ -90,16 +93,16 @@ clen_train = len(ctrain_x)
 clen_val = len(cval_x)
 
 def loadY(str):
-    if str == "mixed"
-    trainy = mtrain_y.values[:, 0]
-    elif str == "left"
-    trainy = ltrain_y.values[:, 0]
-    elif str == "right"
-    trainy = rtrain_y.values[:, 0]
-    elif str == "center"
-    trainy = ctrain_y.values[:, 0]
-    else
-    return
+    if str == "mixed":
+        trainy = mtrain_y.values[:, 0]
+    elif str == "left":
+        trainy = ltrain_y.values[:, 0]
+    elif str == "right":
+        trainy = rtrain_y.values[:, 0]
+    elif str == "center":
+        trainy = ctrain_y.values[:, 0]
+    else:
+        return
 
     trainy = numpy.expand_dims(trainy, axis = 1)
     return trainy
