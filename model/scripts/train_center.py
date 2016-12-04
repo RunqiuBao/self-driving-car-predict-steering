@@ -21,10 +21,13 @@ model.compile(loss='mse', optimizer='adam')
 
 # set batch_size and number of epochs
 batch_size = 500
-epochs = 10
+epochs = 200
 
 # get the values of correct steering angels
 y_train_data = load_data.loadY("center")
+
+#Empty array to record loss at the end of every epoch
+loss = numpy.empty([0])
 
 # training the model
 for i in range(epochs):
@@ -38,33 +41,42 @@ for i in range(epochs):
     x_train, y_train = load_data.loadTrainDataC(load_data.clen_train - (load_data.ctrain_batch_index%load_data.clen_train))
     history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
     trainPredict = numpy.append(trainPredict, model.predict(x_train))
+    loss = numpy.append(loss, history.history['loss'])
+    print "Epoch" + str(i+1)
 
-trainPredict = numpy.expand_dims(trainPredict, axis = 1)
+    trainPredict = numpy.expand_dims(trainPredict, axis = 1)
 
-# estimate model performance
-trainScore = model.evaluate(x_train, y_train, verbose=2)
-print 'Train Score: ', trainScore
+    # shift train predictions for plotting
+    trainPredictPlot = numpy.empty_like(y_train_data)
+    trainPredictPlot[:, :] = numpy.nan
+    trainPredictPlot[0:len(trainPredict), :] = trainPredict
 
-# shift train predictions for plotting
-trainPredictPlot = numpy.empty_like(y_train_data)
-trainPredictPlot[:, :] = numpy.nan
-trainPredictPlot[0:len(trainPredict), :] = trainPredict
-
-input_1 = raw_input("Do you want to save the plot? (y/n): ")
-input_2 = raw_input("Do you want to save the weights? (y/n): ")
+    #Plotting steering angle actual vs predicted
+    plt.figure(0)
+    plt.plot(y_train_data, label = 'Actual Dataset')
+    plt.plot(trainPredictPlot, label = 'Training Prediction')
+    plt.title('Steering Angle: Actual vs Predicted for epoch ' + str(i + 1))
+    plt.xlabel('Number of images')
+    plt.ylabel('Steering angle in radians')
+    plt.legend(loc = 'upper left')
+    plt.savefig('Training_Steering_Angle_Center_epoch_' + str(i + 1))
+    print "Saved steering angle plot to disk"
+    plt.close()
 
 # get time stamp
 timestr = time.strftime("%Y%m%d-%H%M%S")
 
-if input_1 == 'y':
-    # plot baseline and predictions
-    plt.plot(y_train_data, label = 'Dataset')
-    plt.plot(trainPredictPlot, label = 'Training Prediction')
-    plt.legend(loc = 'upper left')
-    plt.savefig('Training_Performance_Center_' + timestr)
-    print "Saved plot to disk"
+#Plot loss
+plt.figure(1)
+plt.plot(loss, label = 'Loss')
+plt.title('Change in Loss over number of epochs')
+plt.xlabel('Number of epochs')
+plt.ylabel('Loss')
+plt.legend(loc = 'upper left')
+plt.savefig('Training_Loss_Center_' + timestr)
+print "Saved loss plot to disk"
+plt.close()
 
-if input_2 == 'y':
-    # serialize weights to HDF5
-    model.save_weights("weights-center-" + timestr + ".h5")
-    print("Saved weights to disk")
+# serialize weights to HDF5
+model.save_weights("weights-center-" + timestr + ".h5")
+print("Saved weights to disk")
