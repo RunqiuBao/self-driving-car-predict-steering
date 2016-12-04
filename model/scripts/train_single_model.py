@@ -24,18 +24,18 @@ batch_size = 500
 epochs = 10
 
 # get the values of correct steering angels
-y_train_data = load_data.loadY()
+y_train_data = load_data.loadY("mixed")
 
 # training the model
 for i in range(epochs):
     trainPredict = numpy.empty([0])
-    for j in range(load_data.len_train_samples/batch_size):
-        x_train, y_train = load_data.loadTrainData(batch_size, 'all')
+    for j in range(load_data.mlen_train/batch_size):
+        x_train, y_train = load_data.loadTrainDataM(batch_size)
         history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
         trainPredict = numpy.append(trainPredict, model.predict(x_train))
         print "Epoch" + str(i+1)
 
-    x_train, y_train = load_data.loadTrainData(load_data.len_train_samples - (load_data.train_batch_index%load_data.len_train_samples), 'all')
+    x_train, y_train = load_data.loadTrainDataM(load_data.mlen_train - (load_data.mtrain_batch_index%load_data.mlen_train))
     history = model.fit(x_train, y_train, nb_epoch = 1, verbose = 2)
     trainPredict = numpy.append(trainPredict, model.predict(x_train))
 
@@ -60,5 +60,5 @@ plt.show()
 # get time stamp
 timestr = time.strftime("%Y%m%d-%H%M%S")
 # serialize weights to HDF5
-model.save_weights("weights-all-" + timestr + ".h5")
+model.save_weights("weights-mixed-" + timestr + ".h5")
 print("Saved weights to disk")
