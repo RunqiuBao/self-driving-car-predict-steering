@@ -344,14 +344,14 @@ def trainDataGen(str):
         # fetch all the images and the labels
         for i in range(0,batch_size):
             if str == 'left':
-                img_file=os.path.join(data_dir, l_inputs.values[(ltrain_batch_index + i) % llen_train][0][3:])
-                yt = l_labels.values[(ltrain_batch_index + i) % llen_train][0]
+                img_file=os.path.join(data_dir, ltrain_x.values[(ltrain_batch_index + i) % llen_train][0][3:])
+                yt = ltrain_y.values[(ltrain_batch_index + i) % llen_train][0]
             elif str == 'right':
-                img_file=os.path.join(data_dir, r_inputs.values[(rtrain_batch_index + i) % rlen_train][0][3:])
-                yt = r_labels.values[(rtrain_batch_index + i) % rlen_train][0]
+                img_file=os.path.join(data_dir, rtrain_x.values[(rtrain_batch_index + i) % rlen_train][0][3:])
+                yt = rtrain_y.values[(rtrain_batch_index + i) % rlen_train][0]
             elif str == 'center':
-                img_file=os.path.join(data_dir, c_inputs.values[(ctrain_batch_index + i) % clen_train][0][3:])
-                yt = c_labels.values[(ctrain_batch_index + i) % clen_train][0]
+                img_file=os.path.join(data_dir, ctrain_x.values[(ctrain_batch_index + i) % clen_train][0][3:])
+                yt = ctrain_y.values[(ctrain_batch_index + i) % clen_train][0]
             else:
                 print 'error in string'
 
@@ -367,10 +367,10 @@ def trainDataGen(str):
             train_y.append(yt)
         train_x = numpy.array(train_x)
         train_y = numpy.expand_dims(train_y, axis = 1)
-        incIndex(str)
+        incTrainIndex(str)
         yield (train_x, train_y)
 
-def incIndex(str):
+def incTrainIndex(str):
     global ltrain_batch_index
     global rtrain_batch_index
     global ctrain_batch_index
@@ -384,5 +384,58 @@ def incIndex(str):
     elif str == 'center':
         #increment the index
         ctrain_batch_index += batch_size
+    else:
+        print 'error in string'
+
+def valDataGen(str):
+    global lval_batch_index
+    global rval_batch_index
+    global cval_batch_index
+    while 1:
+        val_x = []
+        val_y = []
+        # fetch all the images and the labels
+        for i in range(0,batch_size):
+            if str == 'left':
+                img_file=os.path.join(data_dir, lval_x.values[(lval_batch_index + i) % llen_val][0][3:])
+                yt = lval_y.values[(lval_batch_index + i) % llen_train][0]
+            elif str == 'right':
+                img_file=os.path.join(data_dir, rval_x.values[(rval_batch_index + i) % rlen_val][0][3:])
+                yt = rval_y.values[(rval_batch_index + i) % rlen_train][0]
+            elif str == 'center':
+                img_file=os.path.join(data_dir, cval_x.values[(cval_batch_index + i) % clen_val][0][3:])
+                yt = cval_y.values[(cval_batch_index + i) % clen_train][0]
+            else:
+                print 'error in string'
+
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            val_x.append(xt)
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            val_y.append(yt)
+        val_x = numpy.array(val_x)
+        val_y = numpy.expand_dims(val_y, axis = 1)
+        incValIndex(str)
+        yield (val_x, val_y)
+
+def incValIndex(str):
+    global lval_batch_index
+    global rval_batch_index
+    global cval_batch_index
+
+    if str == 'left':
+        #increment the index
+        lval_batch_index += batch_size
+    elif str == 'right':
+        #increment the index
+        rval_batch_index += batch_size
+    elif str == 'center':
+        #increment the index
+        cval_batch_index += batch_size
     else:
         print 'error in string'
