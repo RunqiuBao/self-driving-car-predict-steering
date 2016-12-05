@@ -95,13 +95,13 @@ clen_val = len(cval_x)
 
 def loadY(str):
     if str == "mixed":
-        trainy = mtrain_y.values[:, 0]
+        trainy = mval_y.values[:, 0]
     elif str == "left":
-        trainy = ltrain_y.values[:, 0]
+        trainy = lval_y.values[:, 0]
     elif str == "right":
-        trainy = rtrain_y.values[:, 0]
+        trainy = rval_y.values[:, 0]
     elif str == "center":
-        trainy = ctrain_y.values[:, 0]
+        trainy = cval_y.values[:, 0]
     else:
         return
 
@@ -391,20 +391,18 @@ def valDataGen(str):
     global lval_batch_index
     global rval_batch_index
     global cval_batch_index
+    global batch_size
+
     while 1:
         val_x = []
-        val_y = []
         # fetch all the images and the labels
-        for i in range(0,batch_size):
+        for i in range(0,return_batch_size(str)):
             if str == 'left':
                 img_file=os.path.join(data_dir, lval_x.values[(lval_batch_index + i) % llen_val][0][3:])
-                yt = lval_y.values[(lval_batch_index + i) % llen_train][0]
             elif str == 'right':
                 img_file=os.path.join(data_dir, rval_x.values[(rval_batch_index + i) % rlen_val][0][3:])
-                yt = rval_y.values[(rval_batch_index + i) % rlen_train][0]
             elif str == 'center':
                 img_file=os.path.join(data_dir, cval_x.values[(cval_batch_index + i) % clen_val][0][3:])
-                yt = cval_y.values[(cval_batch_index + i) % clen_train][0]
             else:
                 print 'error in string'
 
@@ -413,15 +411,10 @@ def valDataGen(str):
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             val_x.append(xt)
-
-            # as the steering wheel angle is proportional to inverse of turning radius
-            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
-            # but converted to radians
-            val_y.append(yt)
+        batch_size = 500
         val_x = numpy.array(val_x)
-        val_y = numpy.expand_dims(val_y, axis = 1)
         incValIndex(str)
-        yield (val_x, val_y)
+        yield (val_x)
 
 def incValIndex(str):
     global lval_batch_index
@@ -439,3 +432,18 @@ def incValIndex(str):
         cval_batch_index += batch_size
     else:
         print 'error in string'
+
+def return_batch_size(str):
+    global lval_batch_index
+    global rval_batch_index
+    global cval_batch_index
+    global batch_size
+
+    if str == 'left' and (llen_val - lval_batch_index) < batch_size:
+        batch_size = llen_val - lval_batch_index
+    elif str == 'right' and (rlen_val - rval_batch_index) < batch_size:
+        batch_size = rlen_val - rval_batch_index
+    elif str == 'center' and (clen_val - cval_batch_index) < batch_size:
+        batch_size = clen_val - cval_batch_index
+
+    return batch_size
