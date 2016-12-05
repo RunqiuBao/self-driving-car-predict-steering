@@ -9,14 +9,14 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 100
+epochs = 150
 
 # load json model
 json_file = open('model.json', 'r')
 loaded_model = json_file.read()
 json_file.close()
 model = model_from_json(loaded_model)
-print "Loaded the model"
+print "Loaded the training model"
 
 # complie the model
 model.compile(loss='mse', optimizer='adam')
@@ -31,7 +31,13 @@ y_train_data = load_data.loadY("center")
 # training the model
 history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, nb_worker = 1)
 print "Entering Prediction please wait... Your plots will be generated soon..."
-trainPredict = model.predict_generator(genV, val_samples = load_data.clen_val, nb_worker = 1)
+# load json model
+json_file = open('model_val.json', 'r')
+loaded_model_val = json_file.read()
+json_file.close()
+model_val = model_from_json(loaded_model_val)
+print "Loaded the validation/testing model"
+trainPredict = model_val.predict_generator(genV, val_samples = load_data.clen_val, nb_worker = 1)
 
 # shift train predictions for plotting
 trainPredictPlot = numpy.empty_like(y_train_data)
