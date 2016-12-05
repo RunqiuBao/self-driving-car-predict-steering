@@ -1,7 +1,7 @@
 from __future__ import print_function
 
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Dense, Dropout, Activation, Flatten, SpatialDropout2D
 from keras.layers import Convolution2D, MaxPooling2D, ZeroPadding2D
 
 model = Sequential()
