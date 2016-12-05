@@ -11,6 +11,7 @@ import cv2
 
 train_size = 0.8
 val_size = 0.2
+batch_size = 500
 
 # global index for the data
 mtrain_batch_index = 0
@@ -313,7 +314,7 @@ def trainCDataGenerator():
             img_file=os.path.join(data_dir, c_inputs.values[i][0][3:])
             x = cv2.imread(img_file)
             # normalise the image
-            xt = cv2.resize(x.copy()/255.0, (640, 480)).astype(numpy.float32)
+            xt = cv2.resize(x.copy()/255.0, (160, 120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             xt = numpy.expand_dims(xt, axis = 0)
             # as the steering wheel angle is proportional to inverse of turning radius
@@ -328,7 +329,60 @@ def valCDataGenerator():
             img_file=os.path.join(data_dir, c_inputs.values[i][0][3:])
             x = cv2.imread(img_file)
             # normalise the image
-            xt = cv2.resize(x.copy()/255.0, (640, 480)).astype(numpy.float32)
+            xt = cv2.resize(x.copy()/255.0, (160, 120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             xt = numpy.expand_dims(xt, axis = 0)
             yield (numpy.array(xt))
+
+def trainDataGen(str):
+    global ltrain_batch_index
+    global rtrain_batch_index
+    global ctrain_batch_index
+    while 1:
+        train_x = []
+        train_y = []
+        # fetch all the images and the labels
+        for i in range(0,batch_size):
+            if str == 'left':
+                img_file=os.path.join(data_dir, l_inputs.values[(ltrain_batch_index + i) % llen_train][0][3:])
+                yt = l_labels.values[(ltrain_batch_index + i) % llen_train][0]
+            elif str == 'right':
+                img_file=os.path.join(data_dir, r_inputs.values[(rtrain_batch_index + i) % rlen_train][0][3:])
+                yt = r_labels.values[(rtrain_batch_index + i) % rlen_train][0]
+            elif str == 'center':
+                img_file=os.path.join(data_dir, c_inputs.values[(ctrain_batch_index + i) % clen_train][0][3:])
+                yt = c_labels.values[(ctrain_batch_index + i) % clen_train][0]
+            else:
+                print 'error in string'
+
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            train_x.append(xt)
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            train_y.append(yt)
+        train_x = numpy.array(train_x)
+        train_y = numpy.expand_dims(train_y, axis = 1)
+        incIndex(str)
+        yield (train_x, train_y)
+
+def incIndex(str):
+    global ltrain_batch_index
+    global rtrain_batch_index
+    global ctrain_batch_index
+
+    if str == 'left':
+        #increment the index
+        ltrain_batch_index += batch_size
+    elif str == 'right':
+        #increment the index
+        rtrain_batch_index += batch_size
+    elif str == 'center':
+        #increment the index
+        ctrain_batch_index += batch_size
+    else:
+        print 'error in string'
