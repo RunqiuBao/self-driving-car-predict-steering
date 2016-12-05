@@ -315,9 +315,18 @@ def trainCDataGenerator():
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (640, 480)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
-
             # as the steering wheel angle is proportional to inverse of turning radius
             # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
             # but converted to radians
             yt = numpy.expand_dims(c_labels.values[i][0], axis = 1)
-            yield (xt, yt)
+            yield (numpy.array(xt), numpy.array(yt))
+
+def valCDataGenerator():
+    while 1:
+        for i in range(0,clen_train):
+            img_file=os.path.join(data_dir, c_inputs.values[i][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (640, 480)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            yield (numpy.array(xt))
