@@ -391,12 +391,11 @@ def valDataGen(str):
     global lval_batch_index
     global rval_batch_index
     global cval_batch_index
-    global batch_size
 
     while 1:
         val_x = []
         # fetch all the images and the labels
-        for i in range(0,return_batch_size(str)):
+        for i in range(0,getValBatchSize(str)):
             if str == 'left':
                 img_file=os.path.join(data_dir, lval_x.values[(lval_batch_index + i) % llen_val][0][3:])
             elif str == 'right':
@@ -411,7 +410,6 @@ def valDataGen(str):
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             val_x.append(xt)
-        batch_size = 500
         val_x = numpy.array(val_x)
         incValIndex(str)
         yield (val_x)
@@ -433,17 +431,18 @@ def incValIndex(str):
     else:
         print 'error in string'
 
-def return_batch_size(str):
+def getValBatchSize(str):
     global lval_batch_index
     global rval_batch_index
     global cval_batch_index
-    global batch_size
 
     if str == 'left' and (llen_val - lval_batch_index) < batch_size:
-        batch_size = llen_val - lval_batch_index
+        size = llen_val - lval_batch_index
     elif str == 'right' and (rlen_val - rval_batch_index) < batch_size:
-        batch_size = rlen_val - rval_batch_index
+        size = rlen_val - rval_batch_index
     elif str == 'center' and (clen_val - cval_batch_index) < batch_size:
-        batch_size = clen_val - cval_batch_index
+        size = clen_val - cval_batch_index
+    else:
+        size = batch_size
 
-    return batch_size
+    return size
