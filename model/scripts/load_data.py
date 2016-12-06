@@ -102,7 +102,7 @@ def loadY(str1, str2):
         trainy = rtrain_y.values[:, 0]
     elif str1 == "center" and str2 == "train":
         trainy = ctrain_y.values[:, 0]
-    if str1 == "mixed" and str2 == "validate":
+    elif str1 == "mixed" and str2 == "validate":
         trainy = mval_y.values[:, 0]
     elif str1 == "left" and str2 == "validate":
         trainy = lval_y.values[:, 0]
