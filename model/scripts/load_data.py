@@ -93,14 +93,22 @@ rlen_val = len(rval_x)
 clen_train = len(ctrain_x)
 clen_val = len(cval_x)
 
-def loadY(str):
-    if str == "mixed":
+def loadY(str1, str2):
+    if str1 == "mixed" and str2 == "train":
+        trainy = mtrain_y.values[:, 0]
+    elif str1 == "left" and str2 == "train":
+        trainy = ltrain_y.values[:, 0]
+    elif str1 == "right" and str2 == "train":
+        trainy = rtrain_y.values[:, 0]
+    elif str1 == "center" and str2 == "train":
+        trainy = ctrain_y.values[:, 0]
+    if str1 == "mixed" and str2 == "validate":
         trainy = mval_y.values[:, 0]
-    elif str == "left":
+    elif str1 == "left" and str2 == "validate":
         trainy = lval_y.values[:, 0]
-    elif str == "right":
+    elif str1 == "right" and str2 == "validate":
         trainy = rval_y.values[:, 0]
-    elif str == "center":
+    elif str1 == "center" and str2 == "validate":
         trainy = cval_y.values[:, 0]
     else:
         return
