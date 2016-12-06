@@ -9,7 +9,7 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 200
+epochs = 10
 
 # load json model
 json_file = open('model.json', 'r')
@@ -23,13 +23,13 @@ model.compile(loss='mse', optimizer='adam')
 
 # generator
 genT = load_data.trainDataGen('center')
-genV = load_data.valDataGen('center')
+genV = load_data.valDataGen('center',1)
 
 # get the values of correct steering angels
 y_train_data = load_data.loadY("center", "validate")
 
 # training the model
-history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1)
+history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, validation_data = genV, nb_val_samples = load_data.clen_val)
 
 # get time stamp
 timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -46,9 +46,13 @@ json_file.close()
 model_val = model_from_json(loaded_model_val)
 print "Loaded the validation/testing model"
 
+#Load the trained weights
 model_val.load_weights("weights-center-" + timestr + ".h5")
 
+# compile the model
 model_val.compile(loss='mse', optimizer='adam')
+
+genV = load_data.valDataGen('center')
 
 trainPredict = model_val.predict_generator(genV, val_samples = load_data.clen_val)
 
@@ -72,11 +76,11 @@ plt.close()
 # summarize history for loss
 plt.figure(1)
 plt.plot(history.history['loss'])
-#plt.plot(history.history['val_loss'])
+plt.plot(history.history['val_loss'])
 plt.title('Model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
-plt.legend(['train'], loc='upper left')
+plt.legend(['training', 'validation'], loc='upper left')
 plt.savefig('Loss_Plot_Center')
 print "Saved loss plot to disk"
 plt.close()
