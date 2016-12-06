@@ -9,7 +9,7 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 150
+epochs = 50
 
 # load json model
 json_file = open('model.json', 'r')
@@ -26,7 +26,7 @@ genT = load_data.trainDataGen('center')
 genV = load_data.valDataGen('center')
 
 # get the values of correct steering angels
-y_train_data = load_data.loadY("center")
+y_train_data = load_data.loadY("center", "validate")
 
 # training the model
 history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, nb_worker = 1)

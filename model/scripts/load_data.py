@@ -444,11 +444,11 @@ def getValBatchSize(str):
     global rval_batch_index
     global cval_batch_index
 
-    if str == 'left' and (llen_val - lval_batch_index) < batch_size:
+    if str == 'left' and (llen_val - lval_batch_index%llen_val) < batch_size:
         size = llen_val - lval_batch_index
-    elif str == 'right' and (rlen_val - rval_batch_index) < batch_size:
+    elif str == 'right' and (rlen_val - rval_batch_index%rlen_val) < batch_size:
         size = rlen_val - rval_batch_index
-    elif str == 'center' and (clen_val - cval_batch_index) < batch_size:
+    elif str == 'center' and (clen_val - cval_batch_index%clen_val) < batch_size:
         size = clen_val - cval_batch_index
     else:
         size = batch_size
@@ -460,11 +460,11 @@ def getTrainBatchSize(str):
     global rtrain_batch_index
     global ctrain_batch_index
 
-    if str == 'left' and (llen_train - ltrain_batch_index) < batch_size:
+    if str == 'left' and (llen_train - ltrain_batch_index%llen_train) < batch_size:
         size = llen_train - ltrain_batch_index
-    elif str == 'right' and (rlen_train - rtrain_batch_index) < batch_size:
+    elif str == 'right' and (rlen_train - rtrain_batch_index%rlen_train) < batch_size:
         size = rlen_train - rtrain_batch_index
-    elif str == 'center' and (clen_train - ctrain_batch_index) < batch_size:
+    elif str == 'center' and (clen_train - ctrain_batch_index%clen_train) < batch_size:
         size = clen_train - ctrain_batch_index
     else:
         size = batch_size
