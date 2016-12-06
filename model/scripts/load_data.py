@@ -80,6 +80,13 @@ ctrain_y = c_labels[:int(len(c_labels.values)*train_size)]
 cval_x = c_inputs[-int(len(c_inputs.values)*val_size):]
 cval_y = c_labels[-int(len(c_labels.values)*val_size):]
 
+#shuffle the data
+#c = list(zip(ctrain_x, ctrain_y))
+#random.shuffle(c)
+#ctrain_x, ctrain_y = zip(*c)
+#ctrain_x = list(ctrain_x)
+#ctrain_y = list(ctrain_y)
+
 # get the length
 mlen_train = len(mtrain_x)
 mlen_val = len(mval_x)
@@ -395,21 +402,25 @@ def incTrainIndex(str):
     else:
         print 'error in string'
 
-def valDataGen(str):
+def valDataGen(str, y = None):
     global lval_batch_index
     global rval_batch_index
     global cval_batch_index
 
     while 1:
         val_x = []
+        val_y = []
         # fetch all the images and the labels
         for i in range(0,getValBatchSize(str)):
             if str == 'left':
                 img_file=os.path.join(data_dir, lval_x.values[(lval_batch_index + i) % llen_val][0][3:])
+                yt = lval_y.values[(lval_batch_index + i) % llen_val][0]
             elif str == 'right':
                 img_file=os.path.join(data_dir, rval_x.values[(rval_batch_index + i) % rlen_val][0][3:])
+                yt = rval_y.values[(rval_batch_index + i) % rlen_val][0]
             elif str == 'center':
                 img_file=os.path.join(data_dir, cval_x.values[(cval_batch_index + i) % clen_val][0][3:])
+                yt = cval_y.values[(cval_batch_index + i) % clen_val][0]
             else:
                 print 'error in string'
 
@@ -418,9 +429,18 @@ def valDataGen(str):
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             val_x.append(xt)
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            val_y.append(yt)
         val_x = numpy.array(val_x)
+        val_y = numpy.expand_dims(val_y, axis = 1)
         incValIndex(str)
-        yield (val_x)
+        if y == None:
+            yield (val_x)
+        else:
+            yield (val_x, val_y)
 
 def incValIndex(str):
     global lval_batch_index
