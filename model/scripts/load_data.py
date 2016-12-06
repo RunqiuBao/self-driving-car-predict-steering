@@ -114,7 +114,7 @@ def loadY(str1, str2):
         return
 
     trainy = numpy.expand_dims(trainy, axis = 1)
-    return trainy
+    return trainy*1000
 
 def loadTrainDataM(batch_size):
     global mtrain_batch_index
@@ -376,7 +376,7 @@ def trainDataGen(str):
         train_x = numpy.array(train_x)
         train_y = numpy.expand_dims(train_y, axis = 1)
         incTrainIndex(str)
-        yield (train_x, train_y)
+        yield (train_x, train_y*1000)
 
 def incTrainIndex(str):
     global ltrain_batch_index
