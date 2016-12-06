@@ -9,7 +9,7 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 50
+epochs = 200
 
 # load json model
 json_file = open('model.json', 'r')
@@ -29,7 +29,15 @@ genV = load_data.valDataGen('center')
 y_train_data = load_data.loadY("center", "validate")
 
 # training the model
-history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, nb_worker = 1)
+history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1)
+
+# get time stamp
+timestr = time.strftime("%Y%m%d-%H%M%S")
+
+# serialize weights to HDF5
+model.save_weights("weights-center-" + timestr + ".h5")
+print("Saved weights to disk")
+
 print "Entering Prediction please wait... Your plots will be generated soon..."
 # load json model
 json_file = open('model_val.json', 'r')
@@ -37,7 +45,12 @@ loaded_model_val = json_file.read()
 json_file.close()
 model_val = model_from_json(loaded_model_val)
 print "Loaded the validation/testing model"
-trainPredict = model_val.predict_generator(genV, val_samples = load_data.clen_val, nb_worker = 1)
+
+model_val.load_weights("weights-center-" + timestr + ".h5")
+
+model_val.compile(loss='mse', optimizer='adam')
+
+trainPredict = model_val.predict_generator(genV, val_samples = load_data.clen_val)
 
 # shift train predictions for plotting
 trainPredictPlot = numpy.empty_like(y_train_data)
@@ -67,10 +80,3 @@ plt.legend(['train'], loc='upper left')
 plt.savefig('Loss_Plot_Center')
 print "Saved loss plot to disk"
 plt.close()
-
-# get time stamp
-timestr = time.strftime("%Y%m%d-%H%M%S")
-
-# serialize weights to HDF5
-model.save_weights("weights-center-" + timestr + ".h5")
-print("Saved weights to disk")
