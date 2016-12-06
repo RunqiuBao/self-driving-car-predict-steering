@@ -350,7 +350,7 @@ def trainDataGen(str):
         train_x = []
         train_y = []
         # fetch all the images and the labels
-        for i in range(0,batch_size):
+        for i in range(0,getTrainBatchSize(str)):
             if str == 'left':
                 img_file=os.path.join(data_dir, ltrain_x.values[(ltrain_batch_index + i) % llen_train][0][3:])
                 yt = ltrain_y.values[(ltrain_batch_index + i) % llen_train][0]
@@ -450,6 +450,22 @@ def getValBatchSize(str):
         size = rlen_val - rval_batch_index
     elif str == 'center' and (clen_val - cval_batch_index) < batch_size:
         size = clen_val - cval_batch_index
+    else:
+        size = batch_size
+
+    return size
+
+def getTrainBatchSize(str):
+    global ltrain_batch_index
+    global rtrain_batch_index
+    global ctrain_batch_index
+
+    if str == 'left' and (llen_train - ltrain_batch_index) < batch_size:
+        size = llen_train - ltrain_batch_index
+    elif str == 'right' and (rlen_train - rtrain_batch_index) < batch_size:
+        size = rlen_train - rtrain_batch_index
+    elif str == 'center' and (clen_train - ctrain_batch_index) < batch_size:
+        size = clen_train - ctrain_batch_index
     else:
         size = batch_size
 
