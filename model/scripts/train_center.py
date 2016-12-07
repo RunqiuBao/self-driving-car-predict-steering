@@ -9,7 +9,11 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 25
+# fix random seed for reproducibility
+seed = 7
+numpy.random.seed(seed)
+
+epochs = 5
 
 # load json model
 json_file = open('model.json', 'r')
@@ -18,6 +22,10 @@ loaded_model = json_file.read()
 json_file.close()
 model = model_from_json(loaded_model)
 print "Loaded the training model"
+
+# loda the pre trained weights
+# model.load_weights("200gb_set_weights-center-20161207-152038" + timestr + ".h5")
+# print "Loaded the pre trained weights"
 
 # complie the model
 model.compile(loss='mse', optimizer='adam')
@@ -30,6 +38,7 @@ genV = load_data.valDataGen('center')
 y_train_data = load_data.loadY("center", "validate")
 
 # training the model
+print "compiled the model and started training..."
 history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, validation_data = genV, nb_val_samples = load_data.clen_val)
 
 # get time stamp
@@ -40,6 +49,7 @@ model.save_weights("weights-center-" + timestr + ".h5")
 print("Saved weights to disk")
 
 print "Entering Prediction please wait... Your plots will be generated soon..."
+
 # load json model
 json_file = open('model_val.json', 'r')
 #json_file = open('model_valaicar.json', 'r')
