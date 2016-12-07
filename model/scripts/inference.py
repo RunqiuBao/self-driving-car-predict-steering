@@ -16,7 +16,7 @@ json_file.close()
 model_val = model_from_json(loaded_model_val)
 print "Loaded the validation/testing model"
 #Load the trained weights
-model_val.load_weights("8gb-50epochs" + ".h5")
+model_val.load_weights("200gb_set_weights-center-20161207-152038" + ".h5")
 
 # compile the model
 model_val.compile(loss='mse', optimizer='adam')
