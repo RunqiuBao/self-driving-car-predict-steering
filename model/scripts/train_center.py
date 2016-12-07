@@ -23,7 +23,7 @@ model.compile(loss='mse', optimizer='adam')
 
 # generator
 genT = load_data.trainDataGen('center')
-genV = load_data.valDataGen('center',1)
+genV = load_data.valDataGen('center','both')
 
 # get the values of correct steering angels
 y_train_data = load_data.loadY("center", "validate")

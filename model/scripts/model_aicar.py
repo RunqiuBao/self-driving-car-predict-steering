@@ -38,5 +38,5 @@ model.add(Dense(1, activation='tanh', init = "normal", bias = True))
 model.summary()
 
 model_json = model.to_json()
-with open("model1.json", "w") as json_file:
+with open("model_aicar.json", "w") as json_file:
     json_file.write(model_json)

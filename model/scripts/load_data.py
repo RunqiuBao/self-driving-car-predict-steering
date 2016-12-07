@@ -439,7 +439,7 @@ def valDataGen(str, y = None):
         incValIndex(str)
         if y == None:
             yield (val_x)
-        else:
+        if y == 'both':
             yield (val_x, val_y)
 
 def incValIndex(str):

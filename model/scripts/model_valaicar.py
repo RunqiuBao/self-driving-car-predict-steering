@@ -34,5 +34,5 @@ model_val.add(Dense(1, activation='tanh', init = "normal", bias = True))
 model_val.summary()
 
 model_val_json = model_val.to_json()
-with open("model_val1.json", "w") as json_file:
+with open("model_valaicar.json", "w") as json_file:
     json_file.write(model_val_json)
