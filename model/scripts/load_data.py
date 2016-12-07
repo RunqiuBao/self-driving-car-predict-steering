@@ -11,7 +11,7 @@ import cv2
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 127
+batch_size = 1000
 
 # global index for the data
 mtrain_batch_index = 0
@@ -25,6 +25,7 @@ cval_batch_index = 0
 ltest_batch_index = 0
 rtest_batch_index = 0
 ctest_batch_index = 0
+mdata_batch_index = 0
 
 #set rospack
 rospack = rospkg.RosPack()
@@ -555,3 +556,47 @@ def getTestBatchSize(str):
         size = batch_size
 
     return size
+
+def trainMDataGen(str):
+    global mdata_batch_index
+
+    while 1:
+        train_lx = []
+        train_rx = []
+        train_cx = []
+        train_y = []
+        # fetch all the images and the labels
+        for i in range(0,getTrainBatchSize(str)):
+            img_file=os.path.join(data_dir, ltrain_x.values[(mdata_batch_index + i) % llen_train][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            ltrain_x.append(xt)
+            lyt = ltrain_y.values[(mdata_batch_index + i) % llen_train][0]
+
+            img_file=os.path.join(data_dir, rtrain_x.values[(mdata_batch_index + i) % rlen_train][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            rtrain_x.append(xt)
+            ryt = rtrain_y.values[(mdata_batch_index + i) % rlen_train][0]
+
+            img_file=os.path.join(data_dir, ctrain_x.values[(mdata_batch_index + i) % clen_train][0][3:])
+            yt = ctrain_y.values[(mdata_batch_index + i) % clen_train][0]
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            ctrain_x.append(xt)
+            cyt = rtrain_y.values[(mdata_batch_index + i) % clen_train][0]
+            yt = (lyt + ryt + cyt)/3.0
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            train_y.append(yt)
+        train_y = numpy.expand_dims(train_y, axis = 1)
+        incTrainIndex(str)
+        yield (numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx), train_y*180/numpy.pi)

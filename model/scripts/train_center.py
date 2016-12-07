@@ -9,7 +9,7 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 1
+epochs = 50
 
 # load json model
 json_file = open('model.json', 'r')
