@@ -81,7 +81,7 @@ plt.title('Steering Angle: Actual vs Predicted')
 plt.xlabel('Number of images')
 plt.ylabel('Steering angle in radians')
 plt.legend(loc = 'upper left')
-plt.savefig('Training_Steering_Angle_Center')
+plt.savefig('Test_Steering_Angle_Center')
 print "Saved steering angle plot to disk"
 plt.close()
 
