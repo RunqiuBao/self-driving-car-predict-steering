@@ -9,10 +9,11 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 50
+epochs = 25
 
 # load json model
 json_file = open('model.json', 'r')
+#json_file = open('model_aicar.json', 'r')
 loaded_model = json_file.read()
 json_file.close()
 model = model_from_json(loaded_model)
@@ -41,6 +42,7 @@ print("Saved weights to disk")
 print "Entering Prediction please wait... Your plots will be generated soon..."
 # load json model
 json_file = open('model_val.json', 'r')
+#json_file = open('model_valaicar.json', 'r')
 loaded_model_val = json_file.read()
 json_file.close()
 model_val = model_from_json(loaded_model_val)
