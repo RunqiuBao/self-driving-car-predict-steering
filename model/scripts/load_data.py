@@ -11,7 +11,7 @@ import cv2
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 500
+batch_size = 127
 
 # global index for the data
 mtrain_batch_index = 0
@@ -22,6 +22,9 @@ rtrain_batch_index = 0
 rval_batch_index = 0
 ctrain_batch_index = 0
 cval_batch_index = 0
+ltest_batch_index = 0
+rtest_batch_index = 0
+ctest_batch_index = 0
 
 #set rospack
 rospack = rospkg.RosPack()
@@ -121,7 +124,7 @@ def loadY(str1, str2):
         return
 
     trainy = numpy.expand_dims(trainy, axis = 1)
-    return trainy*1000
+    return trainy*180/numpy.pi
 
 def loadTrainDataM(batch_size):
     global mtrain_batch_index
@@ -383,7 +386,7 @@ def trainDataGen(str):
         train_x = numpy.array(train_x)
         train_y = numpy.expand_dims(train_y, axis = 1)
         incTrainIndex(str)
-        yield (train_x, train_y*1000)
+        yield (train_x, train_y*180/numpy.pi)
 
 def incTrainIndex(str):
     global ltrain_batch_index
@@ -402,7 +405,7 @@ def incTrainIndex(str):
     else:
         print 'error in string'
 
-def valDataGen(str, y = None):
+def valDataGen(str):
     global lval_batch_index
     global rval_batch_index
     global cval_batch_index
@@ -437,10 +440,7 @@ def valDataGen(str, y = None):
         val_x = numpy.array(val_x)
         val_y = numpy.expand_dims(val_y, axis = 1)
         incValIndex(str)
-        if y == None:
-            yield (val_x)
-        if y == 'both':
-            yield (val_x, val_y)
+        yield (val_x, val_y*180/numpy.pi)
 
 def incValIndex(str):
     global lval_batch_index
@@ -486,6 +486,71 @@ def getTrainBatchSize(str):
         size = rlen_train - (rtrain_batch_index%rlen_train)
     elif str == 'center' and (clen_train - (ctrain_batch_index%clen_train)) < batch_size:
         size = clen_train - (ctrain_batch_index%clen_train)
+    else:
+        size = batch_size
+
+    return size
+
+### as of now using the validation data for testing as well
+def testDataGen(str):
+    global ltest_batch_index
+    global rtest_batch_index
+    global ctest_batch_index
+
+    while 1:
+        val_x = []
+        val_y = []
+        # fetch all the images and the labels
+        for i in range(0,getTestBatchSize(str)):
+            if str == 'left':
+                img_file=os.path.join(data_dir, lval_x.values[(ltest_batch_index + i) % llen_val][0][3:])
+                yt = lval_y.values[(ltest_batch_index + i) % llen_val][0]
+            elif str == 'right':
+                img_file=os.path.join(data_dir, rval_x.values[(rtest_batch_index + i) % rlen_val][0][3:])
+                yt = rval_y.values[(rtest_batch_index + i) % rlen_val][0]
+            elif str == 'center':
+                img_file=os.path.join(data_dir, cval_x.values[(ctest_batch_index + i) % clen_val][0][3:])
+                yt = cval_y.values[(ctest_batch_index + i) % clen_val][0]
+            else:
+                print 'error in string'
+
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            val_x.append(xt)
+        val_x = numpy.array(val_x)
+        incTestIndex(str)
+        yield (val_x)
+
+def incTestIndex(str):
+    global ltest_batch_index
+    global rtest_batch_index
+    global ctest_batch_index
+
+    if str == 'left':
+        #increment the index
+        ltest_batch_index += getTestBatchSize(str)
+    elif str == 'right':
+        #increment the index
+        rtest_batch_index += getTestBatchSize(str)
+    elif str == 'center':
+        #increment the index
+        ctest_batch_index += getTestBatchSize(str)
+    else:
+        print 'error in string'
+
+def getTestBatchSize(str):
+    global ltest_batch_index
+    global rtest_batch_index
+    global ctest_batch_index
+
+    if str == 'left' and (llen_val - (ltest_batch_index%llen_val)) < batch_size:
+        size = llen_val - (ltest_batch_index%llen_val)
+    elif str == 'right' and (rlen_val - (rtest_batch_index%rlen_val)) < batch_size:
+        size = rlen_val - (rtest_batch_index%rlen_val)
+    if str == 'center' and (clen_val - (ctest_batch_index%clen_val)) < batch_size:
+        size = clen_val - (ctest_batch_index%clen_val)
     else:
         size = batch_size
 

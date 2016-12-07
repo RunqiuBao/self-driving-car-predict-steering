@@ -9,7 +9,7 @@ import numpy
 import matplotlib.pyplot as plt
 import time
 
-epochs = 10
+epochs = 1
 
 # load json model
 json_file = open('model.json', 'r')
@@ -23,7 +23,7 @@ model.compile(loss='mse', optimizer='adam')
 
 # generator
 genT = load_data.trainDataGen('center')
-genV = load_data.valDataGen('center','both')
+genV = load_data.valDataGen('center')
 
 # get the values of correct steering angels
 y_train_data = load_data.loadY("center", "validate")
@@ -52,9 +52,9 @@ model_val.load_weights("weights-center-" + timestr + ".h5")
 # compile the model
 model_val.compile(loss='mse', optimizer='adam')
 
-genV = load_data.valDataGen('center')
+genT = load_data.testDataGen('center')
 
-trainPredict = model_val.predict_generator(genV, val_samples = load_data.clen_val)
+trainPredict = model_val.predict_generator(genT, val_samples = load_data.clen_val)
 
 # shift train predictions for plotting
 trainPredictPlot = numpy.empty_like(y_train_data)
