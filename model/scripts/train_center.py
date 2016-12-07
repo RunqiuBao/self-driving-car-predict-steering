@@ -24,7 +24,7 @@ model = model_from_json(loaded_model)
 print "Loaded the training model"
 
 # loda the pre trained weights
-# model.load_weights("200gb_set_weights-center-20161207-152038" + timestr + ".h5")
+# model.load_weights("200gb_set_weights-center-20161207-152038" + ".h5")
 # print "Loaded the pre trained weights"
 
 # complie the model
