@@ -51,7 +51,7 @@ print("Saved weights to disk")
 print "Entering Prediction please wait... Your plots will be generated soon..."
 
 # load json model
-json_file = open('model_val.json', 'r')
+json_file = open('model_merged_val.json', 'r')
 #json_file = open('model_valaicar.json', 'r')
 loaded_model_val = json_file.read()
 json_file.close()
