@@ -680,7 +680,7 @@ def valMDataGen():
             # but converted to radians
             val_y.append(yt)
         val_y = numpy.expand_dims(val_y, axis = 1)
-        incMvalIndex()
+        incMValIndex()
         yield (numpy.array(val_cx), val_y*180/numpy.pi) #numpy.array(val_rx), numpy.array(val_cx), val_y*180/numpy.pi)
 
 ## test generator
