@@ -560,6 +560,24 @@ def getTestBatchSize(str):
 
     return size
 
+############# merged model generators
+
+## train generator
+
+def getMTrainBatchSize():
+    global mdata_batch_index
+
+    if (clen_train - (mdata_batch_index%clen_train)) < batch_size:
+        size = clen_train - (mdata_batch_index%clen_train)
+    else:
+        size = batch_size
+
+    return size
+
+def incMTrainIndex():
+    global mdata_batch_index
+    mdata_batch_index += getMTrainBatchSize()
+
 def trainMDataGen():
     global mdata_batch_index
 
@@ -604,19 +622,21 @@ def trainMDataGen():
         incMTrainIndex()
         yield [numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
 
-def getMTrainBatchSize():
-    global mdata_batch_index
+## validation generator
 
-    if (clen_train - (mdata_batch_index%clen_train)) < batch_size:
-        size = clen_train - (mdata_batch_index%clen_train)
+def getMValBatchSize():
+    global mrval_batch_index
+
+    if (clen_val - (mrval_batch_index%clen_val)) < batch_size:
+        size = clen_val - (mrval_batch_index%clen_val)
     else:
         size = batch_size
 
     return size
 
-def incMTrainIndex():
-    global mdata_batch_index
-    mdata_batch_index += getMTrainBatchSize()
+def incMValIndex():
+    global mrval_batch_index
+    mrval_batch_index += getMValBatchSize()
 
 def valMDataGen():
     global mrval_batch_index
@@ -663,20 +683,21 @@ def valMDataGen():
         incMvalIndex()
         yield (numpy.array(val_cx), val_y*180/numpy.pi) #numpy.array(val_rx), numpy.array(val_cx), val_y*180/numpy.pi)
 
+## test generator
 
-def getMValBatchSize():
-    global mrval_batch_index
+def getMtestBatchSize():
+    global mtest_batch_index
 
-    if (clen_val - (mrval_batch_index%clen_val)) < batch_size:
-        size = clen_val - (mrval_batch_index%clen_val)
+    if (clen_test - (mtest_batch_index%clen_test)) < batch_size:
+        size = clen_test - (mtest_batch_index%clen_test)
     else:
         size = batch_size
 
     return size
 
-def incMValIndex():
-    global mrval_batch_index
-    mrval_batch_index += getMValBatchSize()
+def incMtestIndex():
+    global mtest_batch_index
+    mtest_batch_index += getMtestBatchSize()
 
 def testDataGen():
     global mtest_batch_index
@@ -711,18 +732,3 @@ def testDataGen():
 
         incMtestIndex()
         yield (numpy.array(test_cx)) #, numpy.array(test_rx), numpy.array(test_cx))
-
-
-def getMtestBatchSize():
-    global mtest_batch_index
-
-    if (clen_test - (mtest_batch_index%clen_test)) < batch_size:
-        size = clen_test - (mtest_batch_index%clen_test)
-    else:
-        size = batch_size
-
-    return size
-
-def incMtestIndex():
-    global mtest_batch_index
-    mtest_batch_index += getMtestBatchSize()
