@@ -640,13 +640,13 @@ def incMValIndex():
 
 def valMDataGen():
     global mrval_batch_index
-    val_lx = []
-    val_rx = []
-    val_cx = []
-    val_y = []
 
     while 1:
-        # we will only take center images as of now
+        val_lx = []
+        val_rx = []
+        val_cx = []
+        mval_y = []
+
         for i in range(0,getMValBatchSize()):
             img_file=os.path.join(data_dir, lval_x.values[(mrval_batch_index + i) % llen_val][0][3:])
             x = cv2.imread(img_file)
@@ -673,15 +673,15 @@ def valMDataGen():
             val_cx.append(xt)
             cyt = rval_y.values[(mrval_batch_index + i) % clen_val][0]
 
-            yt = cyt; #(lyt + ryt + cyt)/3.0
+            yt = (lyt + ryt + cyt)/3.0
 
             # as the steering wheel angle is proportional to inverse of turning radius
             # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
             # but converted to radians
-            val_y.append(yt)
-        val_y = numpy.expand_dims(val_y, axis = 1)
+            mval_y.append(yt)
+        mval_y = numpy.expand_dims(mval_y, axis = 1)
         incMValIndex()
-        yield (numpy.array(val_cx), val_y*180/numpy.pi) #numpy.array(val_rx), numpy.array(val_cx), val_y*180/numpy.pi)
+        yield [numpy.array(val_lx), numpy.array(val_rx), numpy.array(val_cx)], mval_y*180/numpy.pi
 
 ## test generator
 
@@ -699,13 +699,14 @@ def incMtestIndex():
     global mtest_batch_index
     mtest_batch_index += getMtestBatchSize()
 
-def testDataGen():
+def testMDataGen():
     global mtest_batch_index
-    test_lx = []
-    test_rx = []
-    test_cx = []
 
     while 1:
+        test_lx = []
+        test_rx = []
+        test_cx = []
+        
         # we will only take center images as of now
         for i in range(0,getMtestBatchSize):
             img_file=os.path.join(data_dir, ltest_x.testues[(mtest_batch_index + i) % llen_test][0][3:])
