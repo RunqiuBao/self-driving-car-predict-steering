@@ -8,10 +8,11 @@ import numpy
 import pandas
 import rospkg
 import cv2
+import random
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 1000
+batch_size = 200
 
 # global index for the data
 mtrain_batch_index = 0
@@ -26,6 +27,8 @@ ltest_batch_index = 0
 rtest_batch_index = 0
 ctest_batch_index = 0
 mdata_batch_index = 0
+mrval_batch_index = 0
+mtrain_batch_index = 0
 
 #set rospack
 rospack = rospkg.RosPack()
@@ -85,11 +88,13 @@ cval_x = c_inputs[-int(len(c_inputs.values)*val_size):]
 cval_y = c_labels[-int(len(c_labels.values)*val_size):]
 
 #shuffle the data
-#c = list(zip(ctrain_x, ctrain_y))
-#random.shuffle(c)
-#ctrain_x, ctrain_y = zip(*c)
-#ctrain_x = list(ctrain_x)
-#ctrain_y = list(ctrain_y)
+# c = list(zip(ctrain_x, ctrain_y))
+# random.shuffle(c)
+# ctrain_x[:], ctrain_y[:] = zip(*c)
+#
+# c = list(zip(cval_x, cval_y))
+# random.shuffle(c)
+# cval_x[:], cval_y[:] = zip(*c)
 
 # get the length
 mlen_train = len(mtrain_x)
@@ -105,16 +110,18 @@ clen_train = len(ctrain_x)
 clen_val = len(cval_x)
 
 def loadY(str1, str2):
-    if str1 == "mixed" and str2 == "train":
-        trainy = mtrain_y.values[:, 0]
+    if str1 == "merged" and str2 == "train":
+        trainy = (ltrain_y.values[:, 0] + rtrain_y.values[:, 0] + ctrain_y.values[:, 0])
+        trainy = trainy/3.0
     elif str1 == "left" and str2 == "train":
         trainy = ltrain_y.values[:, 0]
     elif str1 == "right" and str2 == "train":
         trainy = rtrain_y.values[:, 0]
     elif str1 == "center" and str2 == "train":
         trainy = ctrain_y.values[:, 0]
-    elif str1 == "mixed" and str2 == "validate":
-        trainy = mval_y.values[:, 0]
+    elif str1 == "merged" and str2 == "validate":
+        trainy = (lval_y.values[:, 0] + rval_y.values[:, 0] + cval_y.values[:, 0])
+        trainy = trainy/3.0
     elif str1 == "left" and str2 == "validate":
         trainy = lval_y.values[:, 0]
     elif str1 == "right" and str2 == "validate":
@@ -500,18 +507,14 @@ def testDataGen(str):
 
     while 1:
         val_x = []
-        val_y = []
         # fetch all the images and the labels
         for i in range(0,getTestBatchSize(str)):
             if str == 'left':
                 img_file=os.path.join(data_dir, lval_x.values[(ltest_batch_index + i) % llen_val][0][3:])
-                yt = lval_y.values[(ltest_batch_index + i) % llen_val][0]
             elif str == 'right':
                 img_file=os.path.join(data_dir, rval_x.values[(rtest_batch_index + i) % rlen_val][0][3:])
-                yt = rval_y.values[(rtest_batch_index + i) % rlen_val][0]
             elif str == 'center':
                 img_file=os.path.join(data_dir, cval_x.values[(ctest_batch_index + i) % clen_val][0][3:])
-                yt = cval_y.values[(ctest_batch_index + i) % clen_val][0]
             else:
                 print 'error in string'
 
@@ -557,7 +560,7 @@ def getTestBatchSize(str):
 
     return size
 
-def trainMDataGen(str):
+def trainMDataGen():
     global mdata_batch_index
 
     while 1:
@@ -566,13 +569,13 @@ def trainMDataGen(str):
         train_cx = []
         train_y = []
         # fetch all the images and the labels
-        for i in range(0,getTrainBatchSize(str)):
+        for i in range(0,getMTrainBatchSize()):
             img_file=os.path.join(data_dir, ltrain_x.values[(mdata_batch_index + i) % llen_train][0][3:])
             x = cv2.imread(img_file)
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
-            ltrain_x.append(xt)
+            train_lx.append(xt)
             lyt = ltrain_y.values[(mdata_batch_index + i) % llen_train][0]
 
             img_file=os.path.join(data_dir, rtrain_x.values[(mdata_batch_index + i) % rlen_train][0][3:])
@@ -580,7 +583,7 @@ def trainMDataGen(str):
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
-            rtrain_x.append(xt)
+            train_rx.append(xt)
             ryt = rtrain_y.values[(mdata_batch_index + i) % rlen_train][0]
 
             img_file=os.path.join(data_dir, ctrain_x.values[(mdata_batch_index + i) % clen_train][0][3:])
@@ -589,7 +592,7 @@ def trainMDataGen(str):
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
-            ctrain_x.append(xt)
+            train_cx.append(xt)
             cyt = rtrain_y.values[(mdata_batch_index + i) % clen_train][0]
             yt = (lyt + ryt + cyt)/3.0
 
@@ -598,5 +601,128 @@ def trainMDataGen(str):
             # but converted to radians
             train_y.append(yt)
         train_y = numpy.expand_dims(train_y, axis = 1)
-        incTrainIndex(str)
-        yield (numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx), train_y*180/numpy.pi)
+        incMTrainIndex()
+        yield [numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
+
+def getMTrainBatchSize():
+    global mdata_batch_index
+
+    if (clen_train - (mdata_batch_index%clen_train)) < batch_size:
+        size = clen_train - (mdata_batch_index%clen_train)
+    else:
+        size = batch_size
+
+    return size
+
+def incMTrainIndex():
+    global mdata_batch_index
+    mdata_batch_index += getMTrainBatchSize()
+
+def valMDataGen():
+    global mrval_batch_index
+    val_lx = []
+    val_rx = []
+    val_cx = []
+    val_y = []
+
+    while 1:
+        # we will only take center images as of now
+        for i in range(0,getMValBatchSize()):
+            img_file=os.path.join(data_dir, lval_x.values[(mrval_batch_index + i) % llen_val][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            val_lx.append(xt)
+            lyt = lval_y.values[(mrval_batch_index + i) % llen_val][0]
+
+            img_file=os.path.join(data_dir, rval_x.values[(mrval_batch_index + i) % rlen_val][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            val_rx.append(xt)
+            ryt = rval_y.values[(mrval_batch_index + i) % rlen_val][0]
+
+            img_file=os.path.join(data_dir, cval_x.values[(mrval_batch_index + i) % clen_val][0][3:])
+            yt = cval_y.values[(mrval_batch_index + i) % clen_val][0]
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            val_cx.append(xt)
+            cyt = rval_y.values[(mrval_batch_index + i) % clen_val][0]
+
+            yt = cyt; #(lyt + ryt + cyt)/3.0
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            val_y.append(yt)
+        val_y = numpy.expand_dims(val_y, axis = 1)
+        incMvalIndex()
+        yield (numpy.array(val_cx), val_y*180/numpy.pi) #numpy.array(val_rx), numpy.array(val_cx), val_y*180/numpy.pi)
+
+
+def getMValBatchSize():
+    global mrval_batch_index
+
+    if (clen_val - (mrval_batch_index%clen_val)) < batch_size:
+        size = clen_val - (mrval_batch_index%clen_val)
+    else:
+        size = batch_size
+
+    return size
+
+def incMValIndex():
+    global mrval_batch_index
+    mrval_batch_index += getMValBatchSize()
+
+def testDataGen():
+    global mtest_batch_index
+    test_lx = []
+    test_rx = []
+    test_cx = []
+
+    while 1:
+        # we will only take center images as of now
+        for i in range(0,getMtestBatchSize):
+            img_file=os.path.join(data_dir, ltest_x.testues[(mtest_batch_index + i) % llen_test][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            test_lx.append(xt)
+
+            img_file=os.path.join(data_dir, rtest_x.testues[(mtest_batch_index + i) % rlen_test][0][3:])
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            test_rx.append(xt)
+
+            img_file=os.path.join(data_dir, ctest_x.testues[(mtest_batch_index + i) % clen_test][0][3:])
+            yt = ctest_y.testues[(mtest_batch_index + i) % clen_test][0]
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            test_cx.append(xt)
+
+        incMtestIndex()
+        yield (numpy.array(test_cx)) #, numpy.array(test_rx), numpy.array(test_cx))
+
+
+def getMtestBatchSize():
+    global mtest_batch_index
+
+    if (clen_test - (mtest_batch_index%clen_test)) < batch_size:
+        size = clen_test - (mtest_batch_index%clen_test)
+    else:
+        size = batch_size
+
+    return size
+
+def incMtestIndex():
+    global mtest_batch_index
+    mtest_batch_index += getMtestBatchSize()
