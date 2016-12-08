@@ -29,6 +29,7 @@ ctest_batch_index = 0
 mdata_batch_index = 0
 mrval_batch_index = 0
 mtrain_batch_index = 0
+mtest_batch_index = 0
 
 #set rospack
 rospack = rospkg.RosPack()
