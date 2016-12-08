@@ -688,8 +688,8 @@ def valMDataGen():
 def getMtestBatchSize():
     global mtest_batch_index
 
-    if (clen_test - (mtest_batch_index%clen_test)) < batch_size:
-        size = clen_test - (mtest_batch_index%clen_test)
+    if (clen_val - (mtest_batch_index%clen_val)) < batch_size:
+        size = clen_val - (mtest_batch_index%clen_val)
     else:
         size = batch_size
 
