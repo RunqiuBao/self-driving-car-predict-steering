@@ -13,7 +13,7 @@ import time
 seed = 7
 numpy.random.seed(seed)
 
-epochs = 3
+epochs = 2
 
 # load json model
 json_file = open('model_merged.json', 'r')
@@ -24,7 +24,7 @@ model = model_from_json(loaded_model)
 print "Loaded the training model"
 
 # loda the pre trained weights
-#model.load_weights("200gb_deg_weights-center-20161207-232526" + ".h5")
+#model.load_weights("200gb_deg_weights-merged-20161207-232526" + ".h5")
 #print "Loaded the pre trained weights"
 
 # complie the model
@@ -45,7 +45,7 @@ history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb
 timestr = time.strftime("%Y%m%d-%H%M%S")
 
 # serialize weights to HDF5
-model.save_weights("weights-center-" + timestr + ".h5")
+model.save_weights("weights-merged-" + timestr + ".h5")
 print("Saved weights to disk")
 
 print "Entering Prediction please wait... Your plots will be generated soon..."
@@ -81,7 +81,7 @@ plt.title('Steering Angle: Actual vs Predicted')
 plt.xlabel('Number of images')
 plt.ylabel('Steering angle in radians')
 plt.legend(loc = 'upper left')
-plt.savefig('Test_Steering_Angle_Center')
+plt.savefig('Test_Steering_Angle_merged')
 print "Saved steering angle plot to disk"
 plt.close()
 
@@ -93,6 +93,6 @@ plt.title('Model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['training', 'validation'], loc='upper left')
-plt.savefig('Loss_Plot_Center')
+plt.savefig('Loss_Plot_merged')
 print "Saved loss plot to disk"
 plt.close()
