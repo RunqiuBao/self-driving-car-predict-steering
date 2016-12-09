@@ -12,7 +12,7 @@ import random
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 700
+batch_size = 2200
 
 # global index for the data
 mtrain_batch_index = 0
@@ -708,23 +708,22 @@ def testMDataGen():
         test_rx = []
         test_cx = []
 
-        # we will only take center images as of now
         for i in range(0,getMtestBatchSize()):
-            img_file=os.path.join(data_dir, ltest_x.testues[(mtest_batch_index + i) % llen_val][0][3:])
+            img_file=os.path.join(data_dir, lval_x.values[(mtest_batch_index + i) % llen_val][0][3:])
             x = cv2.imread(img_file)
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             test_lx.append(xt)
 
-            img_file=os.path.join(data_dir, rtest_x.testues[(mtest_batch_index + i) % rlen_val][0][3:])
+            img_file=os.path.join(data_dir, rval_x.values[(mtest_batch_index + i) % rlen_val][0][3:])
             x = cv2.imread(img_file)
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             test_rx.append(xt)
 
-            img_file=os.path.join(data_dir, ctest_x.testues[(mtest_batch_index + i) % clen_val][0][3:])
+            img_file=os.path.join(data_dir, cval_x.values[(mtest_batch_index + i) % clen_val][0][3:])
             x = cv2.imread(img_file)
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
@@ -732,4 +731,4 @@ def testMDataGen():
             test_cx.append(xt)
 
         incMtestIndex()
-        yield (numpy.array(test_cx))
+        yield [numpy.array(test_lx), numpy.array(test_rx), numpy.array(test_cx)]
