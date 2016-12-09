@@ -69,7 +69,7 @@ model.add(Dense(50, activation='relu'))
 model.add(Dropout(0.5))
 model.add(Dense(10, activation='relu'))
 model.add(Dropout(0.5))
-model.add(Dense(1, activation='tanh'))
+model.add(Dense(1))
 model.summary()
 
 #plot(left_model, to_file='left_model.png')
