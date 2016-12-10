@@ -9,6 +9,7 @@ import pandas
 import rospkg
 import cv2
 import random
+import threading
 
 train_size = 0.8
 val_size = 0.2
@@ -361,6 +362,63 @@ def valCDataGenerator():
             xt = numpy.expand_dims(xt, axis = 0)
             yield (numpy.array(xt))
 
+#################################################
+
+# make generator thread safe by serializing the next
+class threadsafe_iter:
+    def __init__(self, it):
+        self.it = it
+        self.lock = threading.Lock()
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        with self.lock:
+            return self.it.next()
+
+# decorator which can make any generator thread safe
+def threadsafe_generator(f):
+    def g(*a, **kw):
+        return threadsafe_iter(f(*a, **kw))
+    return g
+
+## generator for individual models
+
+def getTrainBatchSize(str):
+    global ltrain_batch_index
+    global rtrain_batch_index
+    global ctrain_batch_index
+
+    if str == 'left' and (llen_train - (ltrain_batch_index%llen_train)) < batch_size:
+        size = llen_train - (ltrain_batch_index%llen_train)
+    elif str == 'right' and (rlen_train - (rtrain_batch_index%rlen_train)) < batch_size:
+        size = rlen_train - (rtrain_batch_index%rlen_train)
+    elif str == 'center' and (clen_train - (ctrain_batch_index%clen_train)) < batch_size:
+        size = clen_train - (ctrain_batch_index%clen_train)
+    else:
+        size = batch_size
+
+    return size
+
+def incTrainIndex(str):
+    global ltrain_batch_index
+    global rtrain_batch_index
+    global ctrain_batch_index
+
+    if str == 'left':
+        #increment the index
+        ltrain_batch_index += getTrainBatchSize(str)
+    elif str == 'right':
+        #increment the index
+        rtrain_batch_index += getTrainBatchSize(str)
+    elif str == 'center':
+        #increment the index
+        ctrain_batch_index += getTrainBatchSize(str)
+    else:
+        print 'error in string'
+
+@threadsafe_generator
 def trainDataGen(str):
     global ltrain_batch_index
     global rtrain_batch_index
@@ -397,23 +455,40 @@ def trainDataGen(str):
         incTrainIndex(str)
         yield (train_x, train_y*180/numpy.pi)
 
-def incTrainIndex(str):
-    global ltrain_batch_index
-    global rtrain_batch_index
-    global ctrain_batch_index
+def incValIndex(str):
+    global lval_batch_index
+    global rval_batch_index
+    global cval_batch_index
 
     if str == 'left':
         #increment the index
-        ltrain_batch_index += getTrainBatchSize(str)
+        lval_batch_index += getValBatchSize(str)
     elif str == 'right':
         #increment the index
-        rtrain_batch_index += getTrainBatchSize(str)
+        rval_batch_index += getValBatchSize(str)
     elif str == 'center':
         #increment the index
-        ctrain_batch_index += getTrainBatchSize(str)
+        cval_batch_index += getValBatchSize(str)
     else:
         print 'error in string'
 
+def getValBatchSize(str):
+    global lval_batch_index
+    global rval_batch_index
+    global cval_batch_index
+
+    if str == 'left' and (llen_val - (lval_batch_index%llen_val)) < batch_size:
+        size = llen_val - (lval_batch_index%llen_val)
+    elif str == 'right' and (rlen_val - (rval_batch_index%rlen_val)) < batch_size:
+        size = rlen_val - (rval_batch_index%rlen_val)
+    elif str == 'center' and (clen_val - (cval_batch_index%clen_val)) < batch_size:
+        size = clen_val - (cval_batch_index%clen_val)
+    else:
+        size = batch_size
+
+    return size
+
+@threadsafe_generator
 def valDataGen(str):
     global lval_batch_index
     global rval_batch_index
@@ -451,83 +526,6 @@ def valDataGen(str):
         incValIndex(str)
         yield (val_x, val_y*180/numpy.pi)
 
-def incValIndex(str):
-    global lval_batch_index
-    global rval_batch_index
-    global cval_batch_index
-
-    if str == 'left':
-        #increment the index
-        lval_batch_index += getValBatchSize(str)
-    elif str == 'right':
-        #increment the index
-        rval_batch_index += getValBatchSize(str)
-    elif str == 'center':
-        #increment the index
-        cval_batch_index += getValBatchSize(str)
-    else:
-        print 'error in string'
-
-def getValBatchSize(str):
-    global lval_batch_index
-    global rval_batch_index
-    global cval_batch_index
-
-    if str == 'left' and (llen_val - (lval_batch_index%llen_val)) < batch_size:
-        size = llen_val - (lval_batch_index%llen_val)
-    elif str == 'right' and (rlen_val - (rval_batch_index%rlen_val)) < batch_size:
-        size = rlen_val - (rval_batch_index%rlen_val)
-    elif str == 'center' and (clen_val - (cval_batch_index%clen_val)) < batch_size:
-        size = clen_val - (cval_batch_index%clen_val)
-    else:
-        size = batch_size
-
-    return size
-
-def getTrainBatchSize(str):
-    global ltrain_batch_index
-    global rtrain_batch_index
-    global ctrain_batch_index
-
-    if str == 'left' and (llen_train - (ltrain_batch_index%llen_train)) < batch_size:
-        size = llen_train - (ltrain_batch_index%llen_train)
-    elif str == 'right' and (rlen_train - (rtrain_batch_index%rlen_train)) < batch_size:
-        size = rlen_train - (rtrain_batch_index%rlen_train)
-    elif str == 'center' and (clen_train - (ctrain_batch_index%clen_train)) < batch_size:
-        size = clen_train - (ctrain_batch_index%clen_train)
-    else:
-        size = batch_size
-
-    return size
-
-### as of now using the validation data for testing as well
-def testDataGen(str):
-    global ltest_batch_index
-    global rtest_batch_index
-    global ctest_batch_index
-
-    while 1:
-        val_x = []
-        # fetch all the images and the labels
-        for i in range(0,getTestBatchSize(str)):
-            if str == 'left':
-                img_file=os.path.join(data_dir, lval_x.values[(ltest_batch_index + i) % llen_val][0][3:])
-            elif str == 'right':
-                img_file=os.path.join(data_dir, rval_x.values[(rtest_batch_index + i) % rlen_val][0][3:])
-            elif str == 'center':
-                img_file=os.path.join(data_dir, cval_x.values[(ctest_batch_index + i) % clen_val][0][3:])
-            else:
-                print 'error in string'
-
-            x = cv2.imread(img_file)
-            # normalise the image
-            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
-            xt = xt.transpose((2, 0, 1))
-            val_x.append(xt)
-        val_x = numpy.array(val_x)
-        incTestIndex(str)
-        yield (val_x)
-
 def incTestIndex(str):
     global ltest_batch_index
     global rtest_batch_index
@@ -561,6 +559,35 @@ def getTestBatchSize(str):
 
     return size
 
+### as of now using the validation data for testing as well
+@threadsafe_generator
+def testDataGen(str):
+    global ltest_batch_index
+    global rtest_batch_index
+    global ctest_batch_index
+
+    while 1:
+        val_x = []
+        # fetch all the images and the labels
+        for i in range(0,getTestBatchSize(str)):
+            if str == 'left':
+                img_file=os.path.join(data_dir, lval_x.values[(ltest_batch_index + i) % llen_val][0][3:])
+            elif str == 'right':
+                img_file=os.path.join(data_dir, rval_x.values[(rtest_batch_index + i) % rlen_val][0][3:])
+            elif str == 'center':
+                img_file=os.path.join(data_dir, cval_x.values[(ctest_batch_index + i) % clen_val][0][3:])
+            else:
+                print 'error in string'
+
+            x = cv2.imread(img_file)
+            # normalise the image
+            xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+            xt = xt.transpose((2, 0, 1))
+            val_x.append(xt)
+        val_x = numpy.array(val_x)
+        incTestIndex(str)
+        yield (val_x)
+
 ############# merged model generators
 
 ## train generator
@@ -579,6 +606,7 @@ def incMTrainIndex():
     global mdata_batch_index
     mdata_batch_index += getMTrainBatchSize()
 
+@threadsafe_generator
 def trainMDataGen():
     global mdata_batch_index
 
@@ -639,6 +667,7 @@ def incMValIndex():
     global mrval_batch_index
     mrval_batch_index += getMValBatchSize()
 
+@threadsafe_generator
 def valMDataGen():
     global mrval_batch_index
 
@@ -699,7 +728,8 @@ def getMtestBatchSize():
 def incMtestIndex():
     global mtest_batch_index
     mtest_batch_index += getMtestBatchSize()
-
+    
+@threadsafe_generator
 def testMDataGen():
     global mtest_batch_index
 
