@@ -22,6 +22,11 @@ this should extract all the images into corresponding folders *left*, *right*, *
 run `python bag_extract_image_data.py`                               
 this will extract all the images into corresponding folders *left*, *right*, *center* and genrate a text file                        *image_steering_angle.txt* with values   
 
+
+### training 
+**for training on center camera images**
+
+
 #### Notes:
 1. The .yaml, .png, .bag files are ignored in git
 
