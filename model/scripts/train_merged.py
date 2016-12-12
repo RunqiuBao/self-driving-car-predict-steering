@@ -8,6 +8,14 @@ import load_data
 import numpy
 import matplotlib.pyplot as plt
 import time
+import rospkg
+import os
+
+#set rospack
+#rospack = rospkg.RosPack()
+#get package
+#data_dir=rospack.get_path('model')
+#weights_dir = os.path.join(data_dir, "scripts/outputs/40gb/1.weights-merged-20161209-071920.h5")
 
 # fix random seed for reproducibility
 seed = 7
@@ -24,6 +32,8 @@ model = model_from_json(loaded_model)
 print "Loaded the training model"
 
 # loda the pre trained weights
+#model.load_weights(weights_dir)
+#print "Loaded pre-trained weights.. resuming the training now.."
 #model.load_weights("200gb_deg_weights-merged-20161207-232526" + ".h5")
 #print "Loaded the pre trained weights"
 
@@ -39,7 +49,7 @@ y_train_data = load_data.loadY("merged", "validate")
 
 # training the model
 print "compiled the model and started training..."
-history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, validation_data = genV, nb_val_samples = load_data.clen_val)
+history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, validation_data = genV, nb_val_samples = load_data.clen_val, max_q_size = 10, nb_worker = 4, pickle_safe = False)
 
 # get time stamp
 timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -66,7 +76,8 @@ model_val.compile(loss='mse', optimizer='adam')
 
 genT = load_data.testMDataGen()
 
-trainPredict = model_val.predict_generator(genT, val_samples = load_data.clen_val)
+print 'Started testing..'
+trainPredict = model_val.predict_generator(genT, val_samples = load_data.clen_val, max_q_size = 10, nb_worker = 4, pickle_safe = False)
 
 # shift train predictions for plotting
 trainPredictPlot = numpy.empty_like(y_train_data)
@@ -81,7 +92,7 @@ plt.title('Steering Angle: Actual vs Predicted')
 plt.xlabel('Number of images')
 plt.ylabel('Steering angle in radians')
 plt.legend(loc = 'upper left')
-plt.savefig('Test_Steering_Angle_merged')
+plt.savefig('Test_Steering_Angle_merged.jpg')
 print "Saved steering angle plot to disk"
 plt.close()
 
@@ -93,6 +104,6 @@ plt.title('Model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
 plt.legend(['training', 'validation'], loc='upper left')
-plt.savefig('Loss_Plot_merged')
+plt.savefig('Loss_Plot_merged.jpg')
 print "Saved loss plot to disk"
 plt.close()
