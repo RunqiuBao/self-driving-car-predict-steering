@@ -25,6 +25,16 @@ this will extract all the images into corresponding folders *left*, *right*, *ce
 
 ### training 
 **for training on center camera images**
+run `python train_center.py`   
+*change the epochs and batch size accordingly*
+
+**for training using all the three camera images**
+run `python train_merged.py`          
+*change the epochs and batch size accordingly*
+
+### testing
+run `inference.py`
+this should load the weights and predict steeering angle on the test data
 
 
 #### Notes:
