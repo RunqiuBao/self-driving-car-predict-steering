@@ -1,0 +1,13 @@
+
+clean of 200gb data
+
+bagTime    scenario
+
+1475521205.246334 --> car started to move, sensible data ==> skip initial images of (8293)
+1475521342.591059 --> lane started
+1475523527 --> stopped
+1475523789 --> started again
+1475523890 --> end useless data there after
+
+1475521205000000000
+1475521205031610000
