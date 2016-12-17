@@ -21,7 +21,7 @@ import os
 seed = 7
 numpy.random.seed(seed)
 
-epochs = 2
+epochs = 25
 
 # load json model
 json_file = open('model_merged.json', 'r')
@@ -33,9 +33,9 @@ print "Loaded the training model"
 
 # loda the pre trained weights
 #model.load_weights(weights_dir)
-#print "Loaded pre-trained weights.. resuming the training now.."
-#model.load_weights("200gb_deg_weights-merged-20161207-232526" + ".h5")
-#print "Loaded the pre trained weights"
+print "Loaded pre-trained weights.. resuming the training now.."
+model.load_weights("200gb_m_5epoch_weights-merged-20161217-062001" + ".h5")
+print "Loaded the pre trained weights"
 
 # complie the model
 model.compile(loss='mse', optimizer='adam')
@@ -49,7 +49,7 @@ y_train_data = load_data.loadY("merged", "validate")
 
 # training the model
 print "compiled the model and started training..."
-history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, validation_data = genV, nb_val_samples = load_data.clen_val, max_q_size = 10, nb_worker = 4, pickle_safe = False)
+history = model.fit_generator(genT, samples_per_epoch = load_data.clen_train, nb_epoch = epochs, verbose = 1, validation_data = genV, nb_val_samples = load_data.clen_val)
 
 # get time stamp
 timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -77,7 +77,7 @@ model_val.compile(loss='mse', optimizer='adam')
 genT = load_data.testMDataGen()
 
 print 'Started testing..'
-trainPredict = model_val.predict_generator(genT, val_samples = load_data.clen_val, max_q_size = 10, nb_worker = 4, pickle_safe = False)
+trainPredict = model_val.predict_generator(genT, val_samples = load_data.clen_val)
 
 # shift train predictions for plotting
 trainPredictPlot = numpy.empty_like(y_train_data)
