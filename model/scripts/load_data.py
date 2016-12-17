@@ -13,7 +13,7 @@ import threading
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 2200
+batch_size = 700
 
 # global index for the data
 mtrain_batch_index = 0
@@ -55,15 +55,42 @@ m_labels = pandas.read_csv(mimages_csv_file, usecols=['angle'], engine='python',
 
 l_inputs = pandas.read_csv(limages_csv_file, usecols=['filename'], engine='python', skipfooter=0)
 l_labels = pandas.read_csv(limages_csv_file, usecols=['angle'], engine='python', skipfooter=0)
+l_ts = pandas.read_csv(limages_csv_file, usecols=['timestamp'], engine='python', skipfooter=0)
 
 r_inputs = pandas.read_csv(rimages_csv_file, usecols=['filename'], engine='python', skipfooter=0)
 r_labels = pandas.read_csv(rimages_csv_file, usecols=['angle'], engine='python', skipfooter=0)
+r_ts = pandas.read_csv(rimages_csv_file, usecols=['timestamp'], engine='python', skipfooter=0)
 
 c_inputs = pandas.read_csv(cimages_csv_file, usecols=['filename'], engine='python', skipfooter=0)
 c_labels = pandas.read_csv(cimages_csv_file, usecols=['angle'], engine='python', skipfooter=0)
+c_ts = pandas.read_csv(cimages_csv_file, usecols=['timestamp'], engine='python', skipfooter=0)
 
-if not((len(m_inputs.values) and len(m_labels.values)) or \
-       (len(l_inputs.values) and len(l_labels.values)) or \
+l = pandas.read_csv(limages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+r = pandas.read_csv(rimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+c = pandas.read_csv(cimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+m = pandas.read_csv(mimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+
+# sumanth: hack to clean the data
+# should be done correctly (for now check data_cleanup.txt)
+l = l[((l.timestamp >= 1475521205000000000) & (l.timestamp <= 1475523527000000000)) | ((l.timestamp >= 1475523789000000000) & (l.timestamp <= 1475523890000000000))]
+r = r[((r.timestamp >= 1475521205000000000) & (r.timestamp <= 1475523527000000000)) | ((r.timestamp >= 1475523789000000000) & (r.timestamp <= 1475523890000000000))]
+c = c[((c.timestamp >= 1475521205000000000) & (c.timestamp <= 1475523527000000000)) | ((c.timestamp >= 1475523789000000000) & (c.timestamp <= 1475523890000000000))]
+
+# update the data after cleanup
+l_inputs = l.filename.to_frame()
+l_labels = l.angle.to_frame()
+r_inputs = r.filename.to_frame()
+r_labels = r.angle.to_frame()
+c_inputs = c.filename.to_frame()
+c_labels = c.angle.to_frame()
+
+# remove the last value in center
+# hack : sumanth
+c_inputs = c_inputs[:len(c_inputs)-1]
+c_labels = c_labels[:len(c_labels)-1]
+
+#if not((len(m_inputs.values) and len(m_labels.values)) or \
+if not((len(l_inputs.values) and len(l_labels.values)) or \
        (len(r_inputs.values) and len(r_labels.values)) or \
        (len(c_inputs.values) and len(c_labels.values))):
     print "error in dataset"
@@ -728,7 +755,7 @@ def getMtestBatchSize():
 def incMtestIndex():
     global mtest_batch_index
     mtest_batch_index += getMtestBatchSize()
-    
+
 @threadsafe_generator
 def testMDataGen():
     global mtest_batch_index
