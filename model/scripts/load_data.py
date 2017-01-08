@@ -13,7 +13,8 @@ import threading
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 5
+batch_size = 6
+## choose window length as mulptile of batch_size
 window_len = 2
 
 # global index for the data
@@ -800,8 +801,8 @@ def testMDataGen():
 def getMWTrainBatchSize():
     global mdata_batch_index
 
-    if (clen_train - (mwdata_batch_index%clen_train)) < batch_size:
-        size = clen_train - (mwdata_batch_index%clen_train)
+    if ((clen_train - window_len - 1) - (mwdata_batch_index%(clen_train - window_len - 1))) < batch_size:
+        size = (clen_train - window_len - 1) - (mwdata_batch_index%(clen_train - window_len - 1))
     else:
         size = batch_size
 
@@ -820,12 +821,15 @@ def trainMWDataGen():
         train_rx = []
         train_cx = []
         train_y = []
-        sx = []
-        sy = []
-        sz = []
+        fsx = []
+        fsy = []
+        fsz = []
         # fetch all the images and the labels
         for i in range(0,getMWTrainBatchSize()):
-            for il in range(0, window_len):
+            sx = []
+            sy = []
+            sz = []
+            for il in range(i, i + window_len):
                 img_file=os.path.join(data_dir, ltrain_x.values[(mwdata_batch_index + il) % llen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
@@ -850,6 +854,9 @@ def trainMWDataGen():
                 train_cx.append(xt)
                 sz.append(img_file)
 
+            fsx.append(numpy.array(sx))
+            fsy.append(numpy.array(sy))
+            fsz.append(numpy.array(sz))
             ryt = rtrain_y.values[(mwdata_batch_index + i + window_len) % rlen_train][0]
             lyt = ltrain_y.values[(mwdata_batch_index + i + window_len) % llen_train][0]
             cyt = ctrain_y.values[(mwdata_batch_index + i + window_len) % clen_train][0]
@@ -861,6 +868,6 @@ def trainMWDataGen():
             train_y.append(yt)
         train_y = numpy.expand_dims(train_y, axis = 1)
         incMTrainIndex()
-        yield [sx, sy, sz], train_y*180/numpy.pi #numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
+        yield [numpy.array(fsx), numpy.array(fsy), numpy.array(fsz)], train_y*180/numpy.pi #numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
 
 ## validation generator
