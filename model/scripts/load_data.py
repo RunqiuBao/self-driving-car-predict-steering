@@ -13,7 +13,8 @@ import threading
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 700
+batch_size = 5
+window_len = 2
 
 # global index for the data
 mtrain_batch_index = 0
@@ -27,10 +28,13 @@ cval_batch_index = 0
 ltest_batch_index = 0
 rtest_batch_index = 0
 ctest_batch_index = 0
+
 mdata_batch_index = 0
 mrval_batch_index = 0
 mtrain_batch_index = 0
 mtest_batch_index = 0
+
+mwdata_batch_index = 0
 
 #set rospack
 rospack = rospkg.RosPack()
@@ -65,29 +69,29 @@ c_inputs = pandas.read_csv(cimages_csv_file, usecols=['filename'], engine='pytho
 c_labels = pandas.read_csv(cimages_csv_file, usecols=['angle'], engine='python', skipfooter=0)
 c_ts = pandas.read_csv(cimages_csv_file, usecols=['timestamp'], engine='python', skipfooter=0)
 
-l = pandas.read_csv(limages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
-r = pandas.read_csv(rimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
-c = pandas.read_csv(cimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
-m = pandas.read_csv(mimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
-
-# sumanth: hack to clean the data
-# should be done correctly (for now check data_cleanup.txt)
-l = l[((l.timestamp >= 1475521205000000000) & (l.timestamp <= 1475523527000000000)) | ((l.timestamp >= 1475523789000000000) & (l.timestamp <= 1475523890000000000))]
-r = r[((r.timestamp >= 1475521205000000000) & (r.timestamp <= 1475523527000000000)) | ((r.timestamp >= 1475523789000000000) & (r.timestamp <= 1475523890000000000))]
-c = c[((c.timestamp >= 1475521205000000000) & (c.timestamp <= 1475523527000000000)) | ((c.timestamp >= 1475523789000000000) & (c.timestamp <= 1475523890000000000))]
-
-# update the data after cleanup
-l_inputs = l.filename.to_frame()
-l_labels = l.angle.to_frame()
-r_inputs = r.filename.to_frame()
-r_labels = r.angle.to_frame()
-c_inputs = c.filename.to_frame()
-c_labels = c.angle.to_frame()
-
-# remove the last value in center
-# hack : sumanth
-c_inputs = c_inputs[:len(c_inputs)-1]
-c_labels = c_labels[:len(c_labels)-1]
+# l = pandas.read_csv(limages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+# r = pandas.read_csv(rimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+# c = pandas.read_csv(cimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+# m = pandas.read_csv(mimages_csv_file, usecols=['filename', 'angle','timestamp'], engine='python', skipfooter=0)
+#
+# # sumanth: hack to clean the data
+# # should be done correctly (for now check data_cleanup.txt)
+# l = l[((l.timestamp >= 1475521205000000000) & (l.timestamp <= 1475523527000000000)) | ((l.timestamp >= 1475523789000000000) & (l.timestamp <= 1475523890000000000))]
+# r = r[((r.timestamp >= 1475521205000000000) & (r.timestamp <= 1475523527000000000)) | ((r.timestamp >= 1475523789000000000) & (r.timestamp <= 1475523890000000000))]
+# c = c[((c.timestamp >= 1475521205000000000) & (c.timestamp <= 1475523527000000000)) | ((c.timestamp >= 1475523789000000000) & (c.timestamp <= 1475523890000000000))]
+#
+# # update the data after cleanup
+# l_inputs = l.filename.to_frame()
+# l_labels = l.angle.to_frame()
+# r_inputs = r.filename.to_frame()
+# r_labels = r.angle.to_frame()
+# c_inputs = c.filename.to_frame()
+# c_labels = c.angle.to_frame()
+#
+# # remove the last value in center
+# # hack : sumanth
+# c_inputs = c_inputs[:len(c_inputs)-1]
+# c_labels = c_labels[:len(c_labels)-1]
 
 #if not((len(m_inputs.values) and len(m_labels.values)) or \
 if not((len(l_inputs.values) and len(l_labels.values)) or \
@@ -789,3 +793,71 @@ def testMDataGen():
 
         incMtestIndex()
         yield [numpy.array(test_lx), numpy.array(test_rx), numpy.array(test_cx)]
+
+
+############# merged window model generators
+
+## train generator
+
+def getMWTrainBatchSize():
+    global mdata_batch_index
+
+    if (clen_train - (mwdata_batch_index%clen_train)) < batch_size:
+        size = clen_train - (mwdata_batch_index%clen_train)
+    else:
+        size = batch_size
+
+    return size
+
+def incMWTrainIndex():
+    global mwdata_batch_index
+    mwdata_batch_index += getMTrainBatchSize()
+
+@threadsafe_generator
+def trainMWDataGen():
+    global mwdata_batch_index
+
+    while 1:
+        train_lx = []
+        train_rx = []
+        train_cx = []
+        train_y = []
+        # fetch all the images and the labels
+        for i in range(0,getMWTrainBatchSize()):
+            for il in range(0, window_len):
+                img_file=os.path.join(data_dir, ltrain_x.values[(mwdata_batch_index + il) % llen_train][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                train_lx.append(xt)
+
+                img_file=os.path.join(data_dir, rtrain_x.values[(mwdata_batch_index + il) % rlen_train][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                train_rx.append(xt)
+
+                img_file=os.path.join(data_dir, ctrain_x.values[(mwdata_batch_index + il) % clen_train][0][3:])
+                yt = ctrain_y.values[(mwdata_batch_index + i) % clen_train][0]
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                train_cx.append(xt)
+
+            ryt = rtrain_y.values[(mwdata_batch_index + i + window_len) % rlen_train][0]
+            lyt = ltrain_y.values[(mwdata_batch_index + i + window_len) % llen_train][0]
+            cyt = rtrain_y.values[(mwdata_batch_index + i + window_len) % clen_train][0]
+            yt = (lyt + ryt + cyt)/3.0
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            train_y.append(yt)
+        train_y = numpy.expand_dims(train_y, axis = 1)
+        incMTrainIndex()
+        yield [numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
+
+## validation generator
