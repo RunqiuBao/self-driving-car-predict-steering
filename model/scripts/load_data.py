@@ -821,42 +821,36 @@ def trainMWDataGen():
         train_rx = []
         train_cx = []
         train_y = []
-        fsx = []
-        fsy = []
-        fsz = []
         # fetch all the images and the labels
         for i in range(0,getMWTrainBatchSize()):
-            sx = []
-            sy = []
-            sz = []
+            lx=[]
+            rx=[]
+            cx=[]
             for il in range(i, i + window_len):
                 img_file=os.path.join(data_dir, ltrain_x.values[(mwdata_batch_index + il) % llen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
-                train_lx.append(xt)
-                sx.append(img_file)
+                lx.append(xt)
 
                 img_file=os.path.join(data_dir, rtrain_x.values[(mwdata_batch_index + il) % rlen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
-                train_rx.append(xt)
-                sy.append(img_file)
+                rx.append(xt)
 
                 img_file=os.path.join(data_dir, ctrain_x.values[(mwdata_batch_index + il) % clen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
-                train_cx.append(xt)
-                sz.append(img_file)
+                cx.append(xt)
 
-            fsx.append(numpy.array(sx))
-            fsy.append(numpy.array(sy))
-            fsz.append(numpy.array(sz))
+            train_lx.append(numpy.array(lx))
+            train_rx.append(numpy.array(rx))
+            train_cx.append(numpy.array(cx))
             ryt = rtrain_y.values[(mwdata_batch_index + i + window_len) % rlen_train][0]
             lyt = ltrain_y.values[(mwdata_batch_index + i + window_len) % llen_train][0]
             cyt = ctrain_y.values[(mwdata_batch_index + i + window_len) % clen_train][0]
@@ -868,6 +862,6 @@ def trainMWDataGen():
             train_y.append(yt)
         train_y = numpy.expand_dims(train_y, axis = 1)
         incMTrainIndex()
-        yield [numpy.array(fsx), numpy.array(fsy), numpy.array(fsz)], train_y*180/numpy.pi #numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
+        yield [numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
 
 ## validation generator
