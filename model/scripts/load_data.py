@@ -13,9 +13,9 @@ import threading
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 6
+batch_size = 700
 ## choose window length as mulptile of batch_size
-window_len = 2
+window_len = 10
 
 # global index for the data
 mtrain_batch_index = 0
