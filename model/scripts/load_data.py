@@ -665,13 +665,12 @@ def trainMDataGen():
             ryt = rtrain_y.values[(mdata_batch_index + i) % rlen_train][0]
 
             img_file=os.path.join(data_dir, ctrain_x.values[(mdata_batch_index + i) % clen_train][0][3:])
-            yt = ctrain_y.values[(mdata_batch_index + i) % clen_train][0]
             x = cv2.imread(img_file)
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             train_cx.append(xt)
-            cyt = rtrain_y.values[(mdata_batch_index + i) % clen_train][0]
+            cyt = ctrain_y.values[(mdata_batch_index + i) % clen_train][0]
             yt = (lyt + ryt + cyt)/3.0
 
             # as the steering wheel angle is proportional to inverse of turning radius
@@ -726,13 +725,12 @@ def valMDataGen():
             ryt = rval_y.values[(mrval_batch_index + i) % rlen_val][0]
 
             img_file=os.path.join(data_dir, cval_x.values[(mrval_batch_index + i) % clen_val][0][3:])
-            yt = cval_y.values[(mrval_batch_index + i) % clen_val][0]
             x = cv2.imread(img_file)
             # normalise the image
             xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
             xt = xt.transpose((2, 0, 1))
             val_cx.append(xt)
-            cyt = rval_y.values[(mrval_batch_index + i) % clen_val][0]
+            cyt = cval_y.values[(mrval_batch_index + i) % clen_val][0]
 
             yt = (lyt + ryt + cyt)/3.0
 
@@ -822,6 +820,9 @@ def trainMWDataGen():
         train_rx = []
         train_cx = []
         train_y = []
+        sx = []
+        sy = []
+        sz = []
         # fetch all the images and the labels
         for i in range(0,getMWTrainBatchSize()):
             for il in range(0, window_len):
@@ -831,6 +832,7 @@ def trainMWDataGen():
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 train_lx.append(xt)
+                sx.append(img_file)
 
                 img_file=os.path.join(data_dir, rtrain_x.values[(mwdata_batch_index + il) % rlen_train][0][3:])
                 x = cv2.imread(img_file)
@@ -838,18 +840,19 @@ def trainMWDataGen():
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 train_rx.append(xt)
+                sy.append(img_file)
 
                 img_file=os.path.join(data_dir, ctrain_x.values[(mwdata_batch_index + il) % clen_train][0][3:])
-                yt = ctrain_y.values[(mwdata_batch_index + i) % clen_train][0]
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 train_cx.append(xt)
+                sz.append(img_file)
 
             ryt = rtrain_y.values[(mwdata_batch_index + i + window_len) % rlen_train][0]
             lyt = ltrain_y.values[(mwdata_batch_index + i + window_len) % llen_train][0]
-            cyt = rtrain_y.values[(mwdata_batch_index + i + window_len) % clen_train][0]
+            cyt = ctrain_y.values[(mwdata_batch_index + i + window_len) % clen_train][0]
             yt = (lyt + ryt + cyt)/3.0
 
             # as the steering wheel angle is proportional to inverse of turning radius
@@ -858,6 +861,6 @@ def trainMWDataGen():
             train_y.append(yt)
         train_y = numpy.expand_dims(train_y, axis = 1)
         incMTrainIndex()
-        yield [numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
+        yield [sx, sy, sz], train_y*180/numpy.pi #numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
 
 ## validation generator
