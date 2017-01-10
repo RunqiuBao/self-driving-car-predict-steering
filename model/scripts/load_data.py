@@ -13,8 +13,9 @@ import threading
 
 train_size = 0.8
 val_size = 0.2
-batch_size = 5
-window_len = 2
+batch_size = 700
+## choose window length as mulptile of batch_size
+window_len = 10
 
 # global index for the data
 mtrain_batch_index = 0
@@ -35,6 +36,8 @@ mtrain_batch_index = 0
 mtest_batch_index = 0
 
 mwdata_batch_index = 0
+mwval_batch_index = 0
+mwtest_batch_index = 0
 
 #set rospack
 rospack = rospkg.RosPack()
@@ -798,10 +801,10 @@ def testMDataGen():
 ## train generator
 
 def getMWTrainBatchSize():
-    global mdata_batch_index
+    global mwdata_batch_index
 
-    if (clen_train - (mwdata_batch_index%clen_train)) < batch_size:
-        size = clen_train - (mwdata_batch_index%clen_train)
+    if ((clen_train - window_len - 1) - (mwdata_batch_index%(clen_train - window_len - 1))) < batch_size:
+        size = (clen_train - window_len - 1) - (mwdata_batch_index%(clen_train - window_len - 1))
     else:
         size = batch_size
 
@@ -809,7 +812,7 @@ def getMWTrainBatchSize():
 
 def incMWTrainIndex():
     global mwdata_batch_index
-    mwdata_batch_index += getMTrainBatchSize()
+    mwdata_batch_index += getMWTrainBatchSize()
 
 @threadsafe_generator
 def trainMWDataGen():
@@ -820,36 +823,36 @@ def trainMWDataGen():
         train_rx = []
         train_cx = []
         train_y = []
-        sx = []
-        sy = []
-        sz = []
         # fetch all the images and the labels
         for i in range(0,getMWTrainBatchSize()):
-            for il in range(0, window_len):
+            lx=[]
+            rx=[]
+            cx=[]
+            for il in range(i, i + window_len):
                 img_file=os.path.join(data_dir, ltrain_x.values[(mwdata_batch_index + il) % llen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
-                train_lx.append(xt)
-                sx.append(img_file)
+                lx.append(xt)
 
                 img_file=os.path.join(data_dir, rtrain_x.values[(mwdata_batch_index + il) % rlen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
-                train_rx.append(xt)
-                sy.append(img_file)
+                rx.append(xt)
 
                 img_file=os.path.join(data_dir, ctrain_x.values[(mwdata_batch_index + il) % clen_train][0][3:])
                 x = cv2.imread(img_file)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
-                train_cx.append(xt)
-                sz.append(img_file)
+                cx.append(xt)
 
+            train_lx.append(numpy.array(lx))
+            train_rx.append(numpy.array(rx))
+            train_cx.append(numpy.array(cx))
             ryt = rtrain_y.values[(mwdata_batch_index + i + window_len) % rlen_train][0]
             lyt = ltrain_y.values[(mwdata_batch_index + i + window_len) % llen_train][0]
             cyt = ctrain_y.values[(mwdata_batch_index + i + window_len) % clen_train][0]
@@ -861,6 +864,130 @@ def trainMWDataGen():
             train_y.append(yt)
         train_y = numpy.expand_dims(train_y, axis = 1)
         incMTrainIndex()
-        yield [sx, sy, sz], train_y*180/numpy.pi #numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
+        yield [numpy.array(train_lx), numpy.array(train_rx), numpy.array(train_cx)], train_y*180/numpy.pi
 
 ## validation generator
+
+def getMWValBatchSize():
+    global mwval_batch_index
+
+    if ((clen_train - window_len - 1) - (mwval_batch_index%(clen_train - window_len - 1))) < batch_size:
+        size = (clen_train - window_len - 1) - (mwval_batch_index%(clen_train - window_len - 1))
+    else:
+        size = batch_size
+
+    return size
+
+def incMValIndex():
+    global mwval_batch_index
+    mwval_batch_index += getMValBatchSize()
+
+@threadsafe_generator
+def valMDataGen():
+    global mwval_batch_index
+
+    while 1:
+        val_lx = []
+        val_rx = []
+        val_cx = []
+        mval_y = []
+
+        for i in range(0,getMWValBatchSize()):
+            lx=[]
+            rx=[]
+            cx=[]
+            for il in range(i, i + window_len):
+                img_file=os.path.join(data_dir, lval_x.values[(mwval_batch_index + i) % llen_val][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                lx.append(xt)
+
+                img_file=os.path.join(data_dir, rval_x.values[(mwval_batch_index + i) % rlen_val][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                rx.append(xt)
+
+                img_file=os.path.join(data_dir, cval_x.values[(mwval_batch_index + i) % clen_val][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                cx.append(xt)
+
+
+            val_lx.append(numpy.array(lx))
+            val_rx.append(numpy.array(rx))
+            val_cx.append(numpy.array(cx))
+            lyt = lval_y.values[(mwval_batch_index + i) % llen_val][0]
+            ryt = rval_y.values[(mwval_batch_index + i) % rlen_val][0]
+            cyt = cval_y.values[(mwval_batch_index + i) % clen_val][0]
+            yt = (lyt + ryt + cyt)/3.0
+
+            # as the steering wheel angle is proportional to inverse of turning radius
+            # we directly use the steering wheel angle (source: NVIDIA uses the inverse of turning radius)
+            # but converted to radians
+            mval_y.append(yt)
+        mval_y = numpy.expand_dims(mval_y, axis = 1)
+        incMWValIndex()
+        yield [numpy.array(val_lx), numpy.array(val_rx), numpy.array(val_cx)], mval_y*180/numpy.pi
+
+## test generator
+
+def getMWtestBatchSize():
+    global mwtest_batch_index
+
+    if ((clen_train - window_len - 1) - (mwtest_batch_index%(clen_train - window_len - 1))) < batch_size:
+        size = (clen_train - window_len - 1) - (mwtest_batch_index%(clen_train - window_len - 1))
+    else:
+        size = batch_size
+
+    return size
+
+def incMWtestIndex():
+    global mwtest_batch_index
+    mwtest_batch_index += getMWtestBatchSize()
+
+@threadsafe_generator
+def testMWDataGen():
+    global mwtest_batch_index
+
+    while 1:
+        test_lx = []
+        test_rx = []
+        test_cx = []
+
+        for i in range(0,getMtestBatchSize()):
+            lx=[]
+            rx=[]
+            cx=[]
+            for il in range(i, i + window_len):
+                img_file=os.path.join(data_dir, lval_x.values[(mwtest_batch_index + i) % llen_val][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                lx.append(xt)
+
+                img_file=os.path.join(data_dir, rval_x.values[(mwtest_batch_index + i) % rlen_val][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                rx.append(xt)
+
+                img_file=os.path.join(data_dir, cval_x.values[(mwtest_batch_index + i) % clen_val][0][3:])
+                x = cv2.imread(img_file)
+                # normalise the image
+                xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
+                xt = xt.transpose((2, 0, 1))
+                cx.append(xt)
+
+            test_lx.append(numpy.array(lx))
+            test_rx.append(numpy.array(rx))
+            test_cx.append(numpy.array(cx))
+        incMtestIndex()
+        yield [numpy.array(test_lx), numpy.array(test_rx), numpy.array(test_cx)]
