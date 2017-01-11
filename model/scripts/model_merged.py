@@ -10,7 +10,7 @@ center_model = Sequential()
 right_model = Sequential()
 
 #First Convolutional Layer with stride of 2x2 and kernel size 5x5
-left_model.add(Convolution3D(24, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', input_shape=(3,5,120,160), init="glorot_uniform", bias = True))
+left_model.add(Convolution3D(24, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', input_shape=(1,10,120,160), init="glorot_uniform", bias = True))
 #left_model.add(SpatialDropout2D(0.5))
 #Second Convolutional Layer with stride of 2x2 and kernel size 5x5
 left_model.add(Convolution3D(36, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', init="glorot_uniform", bias = True))
@@ -26,7 +26,7 @@ left_model.add(Convolution3D(64, 3, 3, 3, activation='relu', border_mode = 'same
 left_model.add(Flatten())
 
 #First Convolutional Layer with stride of 2x2 and kernel size 5x5
-center_model.add(Convolution3D(24, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', input_shape=(3,5,120,160), init="glorot_uniform", bias = True))
+center_model.add(Convolution3D(24, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', input_shape=(1,10,120,160), init="glorot_uniform", bias = True))
 #center_model.add(SpatialDropout2D(0.5))
 #Second Convolutional Layer with stride of 2x2 and kernel size 5x5
 center_model.add(Convolution3D(36, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', init="glorot_uniform", bias = True))
@@ -42,7 +42,7 @@ center_model.add(Convolution3D(64, 3, 3, 3, activation='relu', border_mode = 'sa
 center_model.add(Flatten())
 
 #First Convolutional Layer with stride of 2x2 and kernel size 5x5
-right_model.add(Convolution3D(24, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', input_shape=(3,5,120,160), init="glorot_uniform", bias = True))
+right_model.add(Convolution3D(24, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', input_shape=(1,10,120,160), init="glorot_uniform", bias = True))
 #right_model.add(SpatialDropout2D(0.5))
 #Second Convolutional Layer with stride of 2x2 and kernel size 5x5
 right_model.add(Convolution3D(36, 5, 5, 5, activation='relu', subsample = (1, 1, 1), border_mode = 'same', init="glorot_uniform", bias = True))
