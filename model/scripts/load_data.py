@@ -830,21 +830,21 @@ def trainMWDataGen():
             cx=[]
             for il in range(i, i + window_len):
                 img_file=os.path.join(data_dir, ltrain_x.values[(mwdata_batch_index + il) % llen_train][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 lx.append(xt)
 
                 img_file=os.path.join(data_dir, rtrain_x.values[(mwdata_batch_index + il) % rlen_train][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 rx.append(xt)
 
                 img_file=os.path.join(data_dir, ctrain_x.values[(mwdata_batch_index + il) % clen_train][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
@@ -898,21 +898,21 @@ def valMDataGen():
             cx=[]
             for il in range(i, i + window_len):
                 img_file=os.path.join(data_dir, lval_x.values[(mwval_batch_index + i) % llen_val][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 lx.append(xt)
 
                 img_file=os.path.join(data_dir, rval_x.values[(mwval_batch_index + i) % rlen_val][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 rx.append(xt)
 
                 img_file=os.path.join(data_dir, cval_x.values[(mwval_batch_index + i) % clen_val][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
@@ -966,21 +966,21 @@ def testMWDataGen():
             cx=[]
             for il in range(i, i + window_len):
                 img_file=os.path.join(data_dir, lval_x.values[(mwtest_batch_index + i) % llen_val][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 lx.append(xt)
 
                 img_file=os.path.join(data_dir, rval_x.values[(mwtest_batch_index + i) % rlen_val][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
                 rx.append(xt)
 
                 img_file=os.path.join(data_dir, cval_x.values[(mwtest_batch_index + i) % clen_val][0][3:])
-                x = cv2.imread(img_file)
+                x = cv2.imread(img_file,0)
                 # normalise the image
                 xt = cv2.resize(x.copy()/255.0, (160,120)).astype(numpy.float32)
                 xt = xt.transpose((2, 0, 1))
