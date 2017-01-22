@@ -93,8 +93,10 @@ c_ts = pandas.read_csv(cimages_csv_file, usecols=['timestamp'], engine='python',
 #
 # # remove the last value in center
 # # hack : sumanth
-# c_inputs = c_inputs[:len(c_inputs)-1]
-# c_labels = c_labels[:len(c_labels)-1]
+l_inputs = l_inputs[:len(l_inputs)-22]
+l_labels = l_labels[:len(l_labels)-22]
+c_inputs = c_inputs[:len(c_inputs)-25]
+c_labels = c_labels[:len(c_labels)-25]
 
 #if not((len(m_inputs.values) and len(m_labels.values)) or \
 if not((len(l_inputs.values) and len(l_labels.values)) or \
