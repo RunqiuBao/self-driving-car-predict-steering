@@ -58,7 +58,7 @@ def camera2dict(msg, write_results, camera_dict):
 def steering2dict(msg, steering_dict):
     steering_dict["timestamp"].append(msg.header.stamp.to_nsec())
     steering_dict["angle"].append(msg.steering_wheel_angle)
-    steering_dict["torque"].append(msg.steering_wheel_torque)
+    #steering_dict["torque"].append(msg.steering_wheel_torque)
     steering_dict["speed"].append(msg.speed)
 
 
@@ -280,6 +280,7 @@ def main():
             # process the images and generate the independent csv files for cameras
             image_csv = pd.read_csv(interpolated_csv_path, sep=',', header=0)
             left_csv = image_csv[image_csv['frame_id'] == 'left_camera']
+
             l_outdir = os.path.join(yaml_outdir, 'left_camera_image.csv')
             left_csv.to_csv(l_outdir, index=False, sep=',')
 

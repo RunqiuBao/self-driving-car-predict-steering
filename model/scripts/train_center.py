@@ -23,6 +23,9 @@ json_file.close()
 model = model_from_json(loaded_model)
 print "Loaded the training model"
 
+from keras.utils import plot_model
+plot_model(model, to_file='/home/runqiu/model.png')
+
 # loda the pre trained weights
 # model.load_weights("200gb_set_weights-center-20161207-152038" + ".h5")
 # print "Loaded the pre trained weights"

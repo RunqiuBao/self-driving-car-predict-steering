@@ -10,6 +10,12 @@ find_package(catkin REQUIRED COMPONENTS
 ) 
 
 find_package(OpenCV)
+find_package(Qt5Gui)
+find_package(Qt5Core)
+find_package(Qt5Widgets)
+find_package(Qt5Test)
+find_package(Qt5Concurrent)
+find_package(Qt5OpenGL)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

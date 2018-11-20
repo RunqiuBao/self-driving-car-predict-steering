@@ -1,3 +1,4 @@
+
 #!/usr/bin/python
 ## Author: sumanth
 ## Date: Nov, 20,2016
@@ -75,30 +76,23 @@ with rosbag.Bag(rosbag_file, "r") as bag:
         elif topic == right_camera_topic:
             image_name = '{}{:08d}{}'.format("image_", im_count, ".png")
             save_image(right_images_dir, msg, image_name)
-            if not 0 in speed_values:
-                if use_average:
-                    angle_value = np.mean(angle_values)
-                    if abs(angle_value) > angle_threshold:
-                        #print ""
-                        image_names.append(image_name)
-                        tmp.append(angle_value)
-                        #save this image
-                else:
-                    # at any image timestamp, use the last known steering angle
-                    angle_value = angle_values[-1]
-                    if abs(angle_value) > angle_threshold:
-                        print ""
-                        image_names.append(image_name)
-                        tmp.append(angle_value)
-                        # save this image
-
-            # reset the list to empty. Cant think of a better way to do it
-            angle_values[:] = []
-            speed_values[:] = []
-            images[:] = []
-            im_count = im_count + 1
-            if im_count % 1000 == 0:
-                print 'Done processing images :{}'.format(im_count)
+        
+	if not 0 in speed_values:
+            if use_average:
+                angle_value = np.mean(angle_values)
+                if abs(angle_value) >= angle_threshold:
+                    #print ""
+                    image_names.append(image_name)
+                    tmp.append(angle_value)
+                    #save this image
+                
+        # reset the list to empty. Cant think of a better way to do it
+        angle_values[:] = []
+        speed_values[:] = []
+        images[:] = []
+        im_count = im_count + 1
+        if im_count % 1000 == 0:
+            print 'Done processing images :{}'.format(im_count)
 
 steering_angle_file = os.path.join(data_dir, "image_steering_angle.txt")
 

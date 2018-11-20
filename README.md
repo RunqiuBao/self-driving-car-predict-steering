@@ -14,7 +14,7 @@ this should launch rviz displaying the camera data.
 
 
 ### getting the data out of bag file
-**for generating images from cameras and csv files**                       
+**for generating images from cameras and csv files**                       python
 run `python bag_extract_data.py`                            
 this should extract all the images into corresponding folders *left*, *right*, *center* and the folder *yaml_files* will contain the required csv files, the **final_interpolated.csv** will contain all image file names with corresponding data (steering angle, acceleration etc.) values.                           
 
@@ -39,4 +39,8 @@ this should load the weights and predict steeering angle on the test data
 
 #### Notes:
 1. The .yaml, .png, .bag files are ignored in git
+
+runqiu:/left_camera/image_color
+# 图像输入需要正则化
+# 参数需要clip，loss过大
 
